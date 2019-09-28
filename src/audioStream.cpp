@@ -1,43 +1,21 @@
-/*
- * audioStream.cpp
- *
- *  Created on: Sep 21, 2019
- *      Author: joseph
- */
-
 #include "audioStream.h"
 
 #include "imgui.hpp"
 #include <iostream>
 #include <queue>
-#include <algorithm>
 #include <complex>
 #include <numeric>
 #include <time.h>
+#include <fftwpp/Array.h>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
 #include <fftwpp/fftw++.h>
 #pragma clang diagnostic pop
 
 audioStream::audioStream() :
-    sys(), device(portaudio::System::instance().defaultOutputDevice()), pos(0), analysisThread(
-        &audioStream::analysis, this)
+    pos(0), analysisThread(&audioStream::analysis, this)
 {
-  fftFrequencies.reserve(FFT_BINS);
-  for (unsigned i = 0; i < FFT_BINS; ++i)
-    fftFrequencies.push_back(i * SAMPLE_RATE / FFT_BINS);
-}
-
-audioStream::~audioStream()
-{
-}
-
-void audioStream::loadFile(const std::string &fileURI)
-{
-  // TODO none of this is threadsafe...at all.....
-  // we have to stop the stream
-  // maybe resample the audio
-  file.load(fileURI);
+  portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
 
   portaudio::DirectionSpecificStreamParameters outParams(device,
   CHANNELS, portaudio::FLOAT32, false, device.defaultLowOutputLatency(),
@@ -51,6 +29,18 @@ void audioStream::loadFile(const std::string &fileURI)
   stream.reset(
       new portaudio::MemFunCallbackStream<audioStream>(params, *this,
           &audioStream::getSample));
+}
+
+audioStream::~audioStream()
+{
+}
+
+void audioStream::loadFile(const std::string &fileURI)
+{
+  // TODO none of this is threadsafe...at all.....
+  // we have to stop the stream
+  // maybe resample the audio
+  file.load(fileURI);
 }
 
 void audioStream::start()
@@ -157,7 +147,7 @@ void audioStream::analysis()
     }
 
     result.analyzedFFT.push_front(analyzedSample); // TODO thread safety
-    result.update(fftFrequencies);
+    result.update();
   }
 }
 
@@ -185,6 +175,16 @@ audioStream::analysisResult::analysisResult() :
 {
 }
 
+audioStream::analysisResult::~analysisResult()
+{
+}
+
+
+const audioStream::analysisResult& audioStream::getResult() const
+{
+  return result;
+}
+
 /*
  * 			subBass,       // 20-60 Hz
  bass,          // 60-250 Hz
@@ -195,56 +195,41 @@ audioStream::analysisResult::analysisResult() :
  brilliance     // 6000-20000 Hz
  */
 
-void splitFFTRanges(const std::vector<double> &fftFrequencies,
-    const audioStream::fftResult &source,
-    std::unordered_map<audioStream::analysisResult::spectrumRange,
+void splitFFTRanges(const audioStream::fftResult &source,
+    std::unordered_map<spectrumRange,
         audioStream::fftResult> &dest)
 {
-  size_t subBassIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 60) - fftFrequencies.begin();
-  size_t bassIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 250) - fftFrequencies.begin();
-  size_t lowMidrangeIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 500) - fftFrequencies.begin();
-  size_t midrangeIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 2000) - fftFrequencies.begin();
-  size_t upperMidrangeIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 4000) - fftFrequencies.begin();
-  size_t presenceIndex = std::upper_bound(fftFrequencies.begin(),
-      fftFrequencies.end(), 6000) - fftFrequencies.begin();
-
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::subBass][channel] =
+    dest[subBass][channel] =
         std::vector<float>(source[channel].begin(),
             source[channel].begin() + subBassIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::bass][channel] =
+    dest[bass][channel] =
         std::vector<float>(source[channel].begin() + subBassIndex,
             source[channel].begin() + bassIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::lowMidrange][channel] =
+    dest[lowMidrange][channel] =
         std::vector<float>(source[channel].begin() + bassIndex,
             source[channel].begin() + lowMidrangeIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::midrange][channel] =
+    dest[midrange][channel] =
         std::vector<float>(source[channel].begin() + lowMidrangeIndex,
             source[channel].begin() + midrangeIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::upperMidrange][channel] =
+    dest[upperMidrange][channel] =
         std::vector<float>(source[channel].begin() + midrangeIndex,
             source[channel].begin() + upperMidrangeIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::presence][channel] =
+    dest[presence][channel] =
         std::vector<float>(source[channel].begin() + upperMidrangeIndex,
             source[channel].begin() + presenceIndex);
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
-    dest[audioStream::analysisResult::spectrumRange::brilliance][channel] =
+    dest[brilliance][channel] =
         std::vector<float>(source[channel].begin() + presenceIndex,
             source[channel].end());
 }
 
-void audioStream::analysisResult::update(
-    const std::vector<double> &fftFrequencies)
+void audioStream::analysisResult::update()
 {
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
   {
@@ -258,8 +243,8 @@ void audioStream::analysisResult::update(
     movingAverageFFT[channel] = movingSum;
   }
 
-  splitFFTRanges(fftFrequencies, movingAverageFFT, rangedMovingAverageFFT);
-  splitFFTRanges(fftFrequencies, analyzedFFT.front(), rangedLatestResult);
+  splitFFTRanges(movingAverageFFT, rangedMovingAverageFFT);
+  splitFFTRanges(analyzedFFT.front(), rangedLatestResult);
 }
 
 void audioStream::renderImGui() const
@@ -268,7 +253,7 @@ void audioStream::renderImGui() const
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
   {
     ImGui::PlotConfig conf;
-    conf.values.ys = &result.analyzedFFT.front()[channel][0];
+    conf.values.ys = result.analyzedFFT.front()[channel].data();
     conf.values.count = FFT_BINS;
     conf.scale.min = 0;
     conf.scale.max = 100;
@@ -283,7 +268,7 @@ void audioStream::renderImGui() const
   for (unsigned channel = 0; channel < CHANNELS; ++channel)
   {
     ImGui::PlotConfig conf;
-    conf.values.ys = &result.movingAverageFFT[channel][0];
+    conf.values.ys = result.movingAverageFFT[channel].data();
     conf.values.count = result.movingAverageFFT[channel].size();
     conf.scale.min = 0;
     conf.scale.max = 100;
@@ -300,10 +285,10 @@ void audioStream::renderImGui() const
     for (unsigned i = 0; i != 7; ++i)
     {
       ImGui::PlotConfig conf;
-      conf.values.ys = &result.rangedLatestResult.at(
-          analysisResult::spectrumRange(i))[channel][0];
+      conf.values.ys = result.rangedLatestResult.at(
+          spectrumRange(i))[channel].data();
       conf.values.count = result.rangedLatestResult.at(
-          analysisResult::spectrumRange(i))[channel].size();
+          spectrumRange(i))[channel].size();
       conf.scale.min = 0;
       conf.scale.max = 100;
       conf.tooltip.show = true;
@@ -322,10 +307,10 @@ void audioStream::renderImGui() const
     for (unsigned i = 0; i != 7; ++i)
     {
       ImGui::PlotConfig conf;
-      conf.values.ys = &result.rangedMovingAverageFFT.at(
-          analysisResult::spectrumRange(i))[channel][0];
+      conf.values.ys = result.rangedMovingAverageFFT.at(
+          spectrumRange(i))[channel].data();
       conf.values.count = result.rangedMovingAverageFFT.at(
-          analysisResult::spectrumRange(i))[channel].size();
+          spectrumRange(i))[channel].size();
       conf.scale.min = 0;
       conf.scale.max = 100;
       conf.tooltip.show = true;
