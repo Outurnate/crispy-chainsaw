@@ -30,59 +30,61 @@
 class audioStream
 {
 public:
-	typedef std::array<std::vector<float>, CHANNELS> fftResult;
+  typedef std::array<std::vector<float>, CHANNELS> fftResult;
 
-	class analysisResult
-	{
-		friend class audioStream;
-	public:
-		enum spectrumRange : unsigned
-		{
-			subBass       = 0, // 20-60 Hz
-			bass          = 1, // 60-250 Hz
-			lowMidrange   = 2, // 250-500 Hz
-			midrange      = 3, // 500-2000 Hz
-			upperMidrange = 4, // 2000-4000 Hz
-			presence      = 5, // 4000-6000 Hz
-			brilliance    = 6  // 6000-20000 Hz
-		};
+  class analysisResult
+  {
+    friend class audioStream;
+  public:
+    enum spectrumRange : unsigned
+    {
+      subBass = 0, // 20-60 Hz
+      bass = 1, // 60-250 Hz
+      lowMidrange = 2, // 250-500 Hz
+      midrange = 3, // 500-2000 Hz
+      upperMidrange = 4, // 2000-4000 Hz
+      presence = 5, // 4000-6000 Hz
+      brilliance = 6  // 6000-20000 Hz
+    };
 
-		analysisResult();
+    analysisResult();
 
-		boost::circular_buffer<fftResult> analyzedFFT;
-		fftResult movingAverageFFT;
-		std::unordered_map<spectrumRange, fftResult> rangedMovingAverageFFT, rangedLatestResult;
-	private:
-		static const fftResult emptyResult;
+    boost::circular_buffer<fftResult> analyzedFFT;
+    fftResult movingAverageFFT;
+    std::unordered_map<spectrumRange, fftResult> rangedMovingAverageFFT,
+        rangedLatestResult;
+  private:
+    static const fftResult emptyResult;
 
-		void update(const std::vector<double>& fftFrequencies);
-	};
+    void update(const std::vector<double> &fftFrequencies);
+  };
 
-	audioStream();
-	virtual ~audioStream();
+  audioStream();
+  virtual ~audioStream();
 
-	void loadFile(const std::string &fileURI);
-	void start();
-	void stop();
-	const bool isPlaying() const;
+  void loadFile(const std::string &fileURI);
+  void start();
+  void stop();
+  const bool isPlaying() const;
 
-	void renderImGui() const;
+  void renderImGui() const;
 private:
-	int getSample(const void *inputBuffer, void *outputBuffer,
-			unsigned long framesPerBuffer,
-			const PaStreamCallbackTimeInfo *timeInfo,
-			PaStreamCallbackFlags statusFlags);
-	void analysis();
+  int getSample(const void *inputBuffer, void *outputBuffer,
+      unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
+      PaStreamCallbackFlags statusFlags);
+  void analysis();
 
-	portaudio::AutoSystem sys;
-	const portaudio::Device &device;
-	AudioFile<double> file;
-	std::unique_ptr<portaudio::MemFunCallbackStream<audioStream> > stream;
-	unsigned long pos;
-	std::thread analysisThread;
-	std::array<boost::lockfree::spsc_queue<float, boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, CHANNELS> analysisQueue; // 32 is completely arbitrary
-	std::vector<double> fftFrequencies;
-	analysisResult result;
+  portaudio::AutoSystem sys;
+  const portaudio::Device &device;
+  AudioFile<double> file;
+  std::unique_ptr<portaudio::MemFunCallbackStream<audioStream> > stream;
+  unsigned long pos;
+  std::thread analysisThread;
+  std::array<
+      boost::lockfree::spsc_queue<float,
+          boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, CHANNELS> analysisQueue; // 32 is completely arbitrary
+  std::vector<double> fftFrequencies;
+  analysisResult result;
 };
 
 #endif /* AUDIOSTREAM_H_ */

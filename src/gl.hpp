@@ -17,10 +17,10 @@
 
 struct GLFWwindowDeleter
 {
-	void operator()(GLFWwindow* window) const
-	{
-		glfwDestroyWindow(window);
-	}
+  void operator()(GLFWwindow *window) const
+  {
+    glfwDestroyWindow(window);
+  }
 };
 typedef std::unique_ptr<GLFWwindow, GLFWwindowDeleter> GLFWWindowPtr;
 
