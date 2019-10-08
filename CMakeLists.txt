@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(Audio)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -25,7 +25,7 @@ add_custom_command(OUTPUT "${PROJECT_BINARY_DIR}/src/glad.c" "${PROJECT_BINARY_D
                    COMMAND "${Python_EXECUTABLE}"
                    ARGS -m glad --profile="core" --api="gl=4.5" --generator="c" --spec="gl" --extensions="" --out "${PROJECT_BINARY_DIR}")
 
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/audio.cpp" "${PROJECT_SOURCE_DIR}/src/audioStream.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/audio.cpp" "${PROJECT_SOURCE_DIR}/src/audioStream.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp")
 
 add_library(AudioFile STATIC "${PROJECT_SOURCE_DIR}/libs/AudioFile/AudioFile.cpp")
 target_include_directories(AudioFile PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile")

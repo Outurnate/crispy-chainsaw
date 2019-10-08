@@ -48,21 +48,24 @@ void circleSpectrumScene::update(const audioStream& stream)
 {
   glBindVertexArray(simpleVAO);
 
-  const audioStream::analysisResult& data = stream.getResult();
+  const audioAnalyzer::fftSpectrumData& data = stream.getLatestFrame().spectrum;
 
-  circlePoints = data.rangedMovingAverageFFT.at(spectrumRange::midrange)[0].size();
+  circlePoints = audioAnalyzer::rangedSize(spectrumRange::lowMidrange) + audioAnalyzer::rangedSize(spectrumRange::midrange) + audioAnalyzer::rangedSize(spectrumRange::upperMidrange);
   std::vector<float> points;
   std::vector<float> pointsColors;
 
+  auto startIter = audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange);
+
   for (unsigned i = 0; i < circlePoints; ++i)
   {
-    float radius = data.rangedMovingAverageFFT.at(spectrumRange::midrange)[0][i] / 100.0f;
+    float radius = 0.25f + (startIter->magnitude / 150.0f);
     float theta = (2 * M_PI) / float(circlePoints) * i;
     points.push_back(radius * cos(theta)); //x
     points.push_back(radius * sin(theta)); //y
     pointsColors.push_back(1.0f);
     pointsColors.push_back(0.0f);
     pointsColors.push_back(0.0f);
+    ++startIter;
   }
 
   glGenBuffers(1, &simpleVBOPosition);
