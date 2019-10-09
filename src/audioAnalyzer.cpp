@@ -13,12 +13,28 @@
 #include <fftwpp/fftw++.h>
 #pragma clang diagnostic pop
 
+#include <iostream>
+
+// https://dlbeer.co.nz/articles/fftvis.html
+// https://stackoverflow.com/a/20584591
+
 audioAnalyzer::audioAnalyzer()
 {
 }
 
 audioAnalyzer::~audioAnalyzer()
 {
+}
+
+template<typename T>
+inline T lerp(T a, T b, T alpha)
+{
+  return alpha * a + ((1 - alpha) * b);
+}
+
+inline float calculateGamma(float currentFrequency, float maxFrequency, float gamma)
+{
+  return pow((currentFrequency / maxFrequency), (1 / gamma));
 }
 
 void audioAnalyzer::analyze(const audioSourceFrame& sample)
@@ -45,10 +61,10 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
 
     for (unsigned i = 0; i < FFT_BINS; ++i)
     {
-      double d = sqrt(
-          pow(transformedSample[i].real(), 2)
-              + pow(transformedSample[i].imag(), 2));
-      analyzedSample[channel][i] = d;
+      float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
+      float currentFrequency = labels.labels[i];
+      float gammaCoefficient = calculateGamma(currentFrequency, MAXIMUM_FREQUENCY, 2);
+      analyzedSample[channel][i] = gammaCoefficient * lerp(previousFrame.spectrum[i].magnitude / gammaCoefficient, d, 0.20f);
     }
   }
 
@@ -62,10 +78,11 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     audioPoints[i].balance = CHANNELS == 2 ? (analyzedSample[0][i] - analyzedSample[1][i]) : 0.0f;
   }
 
-  lastFrame.spectrum = audioPoints;
+  previousFrame = currentFrame;
+  currentFrame.spectrum = audioPoints;
 }
 
 const audioAnalyzer::audioAnalyzedFrame& audioAnalyzer::getData() const
 {
-  return lastFrame;
+  return currentFrame;
 }

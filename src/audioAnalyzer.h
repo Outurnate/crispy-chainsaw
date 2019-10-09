@@ -17,8 +17,6 @@
 // 2000-4000 Hz upper midrange
 // 4000-6000 Hz presence
 // 6000-20000 Hz brilliance
-// https://dlbeer.co.nz/articles/fftvis.html
-// https://stackoverflow.com/a/20584591
 enum class spectrumRange : unsigned
 {
   subBass = 0, // 20-60 Hz
@@ -37,6 +35,9 @@ struct audioPoint
 
   audioPoint operator+(const audioPoint& rhs) const { return { this->magnitude + rhs.magnitude, this->balance + rhs.balance }; }
   audioPoint operator-(const audioPoint& rhs) const { return { this->magnitude - rhs.magnitude, this->balance - rhs.balance }; }
+
+  audioPoint() : magnitude(0.0f), balance(0.0f) {}
+  audioPoint(float magnitude, float balance) : magnitude(magnitude), balance(balance) {}
 };
 
 template<unsigned FFT_BINS, unsigned SAMPLE_RATE>
@@ -78,6 +79,8 @@ public:
     fftSpectrumData spectrum;
     bool hasBeat;
     double tempo;
+
+    audioAnalyzedFrame() : spectrum(), hasBeat(false), tempo(0.0f) {}
   };
 
   audioAnalyzer();
@@ -86,7 +89,7 @@ public:
   void analyze(const audioSourceFrame& sample);
   const audioAnalyzedFrame& getData() const;
 private:
-  audioAnalyzedFrame lastFrame;
+  audioAnalyzedFrame currentFrame, previousFrame;
 
   static constexpr binLabels<FFT_BINS, SAMPLE_RATE> labels = binLabels<FFT_BINS, SAMPLE_RATE>();
 

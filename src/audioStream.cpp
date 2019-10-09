@@ -126,7 +126,7 @@ void audioStream::renderImGui() const
   conf.values.ys = data.data();
   conf.values.count = analyzer::FFT_BINS;
   conf.scale.min = 0;
-  conf.scale.max = 100;
+  conf.scale.max = 7.5f;
   conf.tooltip.show = true;
   conf.tooltip.format = "x=%.2f, y=%.2f";
   conf.grid_x.show = false;
@@ -138,8 +138,8 @@ void audioStream::renderImGui() const
     data[i] = getLatestFrame().spectrum.at(i).balance;
   conf.values.ys = data.data();
   conf.values.count = analyzer::FFT_BINS;
-  conf.scale.min = -25.0f;
-  conf.scale.max = 25.0f;
+  conf.scale.min = -2.5f;
+  conf.scale.max = 2.5f;
   conf.tooltip.show = true;
   conf.tooltip.format = "x=%.2f, y=%.2f";
   conf.grid_x.show = false;

@@ -1,6 +1,7 @@
 #include "circleSpectrumScene.hpp"
 
 #include <vector>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -54,18 +55,28 @@ void circleSpectrumScene::update(const audioStream& stream)
   std::vector<float> points;
   std::vector<float> pointsColors;
 
-  auto startIter = audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange);
+  std::vector<float> rawData;
+  std::for_each(audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange), audioAnalyzer::rangedEnd(data, spectrumRange::upperMidrange), [&rawData](audioPoint point) { rawData.push_back(point.magnitude); });
 
   for (unsigned i = 0; i < circlePoints; ++i)
   {
-    float radius = 0.25f + (startIter->magnitude / 150.0f);
-    float theta = (2 * M_PI) / float(circlePoints) * i;
+    float radius = 0.25f + (rawData[i] / 15.0f);
+    float theta = (M_PI / 2) + (M_PI / float(circlePoints) * i);
     points.push_back(radius * cos(theta)); //x
     points.push_back(radius * sin(theta)); //y
     pointsColors.push_back(1.0f);
     pointsColors.push_back(0.0f);
     pointsColors.push_back(0.0f);
-    ++startIter;
+  }
+  for (unsigned i = 0; i < circlePoints; ++i)
+  {
+    float radius = 0.25f + (rawData[circlePoints - 1 - i] / 15.0f);
+    float theta = (M_PI / 2) + M_PI + (M_PI / float(circlePoints) * i);
+    points.push_back(radius * cos(theta)); //x
+    points.push_back(radius * sin(theta)); //y
+    pointsColors.push_back(1.0f);
+    pointsColors.push_back(0.0f);
+    pointsColors.push_back(0.0f);
   }
 
   glGenBuffers(1, &simpleVBOPosition);
@@ -88,7 +99,7 @@ void circleSpectrumScene::render()
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glLineWidth(4.0f);
-  glDrawArrays(GL_LINE_LOOP, 0, circlePoints);
+  glDrawArrays(GL_LINE_LOOP, 0, circlePoints * 2);
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);
 }
