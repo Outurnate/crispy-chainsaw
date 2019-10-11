@@ -117,7 +117,7 @@ void audioStream::analysis()
 
 void audioStream::renderImGui() const
 {
-  std::array<float, analyzer::FFT_BINS> data;
+  /*std::array<float, analyzer::FFT_BINS> data;
   ImGui::PlotConfig conf;
 
   ImGui::Begin("Audio data", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
@@ -147,7 +147,7 @@ void audioStream::renderImGui() const
   conf.frame_size = ImVec2(50 * 7, 75);
   conf.line_thickness = 2.f;
   ImGui::Plot("plot", conf);
-  ImGui::End();
+  ImGui::End();*/
 }
 
 const audioStream::analyzer::audioAnalyzedFrame& audioStream::getLatestFrame() const

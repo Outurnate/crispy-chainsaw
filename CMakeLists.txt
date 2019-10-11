@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(Audio)
 
+set(OpenGL_GL_Preference "GLVND")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -14,7 +15,8 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Portaudio REQUIRED)
 find_package(FFTW REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
+
+add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg")
 
 set_source_files_properties("${PROJECT_BINARY_DIR}/src/glad.c"          PROPERTIES GENERATED TRUE)
 set_source_files_properties("${PROJECT_BINARY_DIR}/include/glad/glad.h" PROPERTIES GENERATED TRUE)
@@ -25,7 +27,7 @@ add_custom_command(OUTPUT "${PROJECT_BINARY_DIR}/src/glad.c" "${PROJECT_BINARY_D
                    COMMAND "${Python_EXECUTABLE}"
                    ARGS -m glad --profile="core" --api="gl=4.5" --generator="c" --spec="gl" --extensions="" --out "${PROJECT_BINARY_DIR}")
 
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/audio.cpp" "${PROJECT_SOURCE_DIR}/src/audioStream.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioStream.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp")
 
 add_library(AudioFile STATIC "${PROJECT_SOURCE_DIR}/libs/AudioFile/AudioFile.cpp")
 target_include_directories(AudioFile PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile")
@@ -33,13 +35,9 @@ target_include_directories(AudioFile PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFil
 add_library(fftwpp STATIC "${PROJECT_SOURCE_DIR}/libs/fftwpp/Array.cc" "${PROJECT_SOURCE_DIR}/libs/fftwpp/Complex.cc" "${PROJECT_SOURCE_DIR}/libs/fftwpp/convolution.cc" "${PROJECT_SOURCE_DIR}/libs/fftwpp/fftw++.cc")
 target_include_directories(fftwpp PUBLIC "${PROJECT_SOURCE_DIR}/libs/fftwpp" ${FFTW_INCLUDE_DIRS})
 
-add_library(imgui STATIC "${PROJECT_SOURCE_DIR}/libs/imgui/imgui.cpp" "${PROJECT_SOURCE_DIR}/libs/imgui/imgui_draw.cpp" "${PROJECT_SOURCE_DIR}/libs/imgui/imgui_widgets.cpp" "${PROJECT_SOURCE_DIR}/libs/imgui/examples/imgui_impl_glfw.cpp" "${PROJECT_SOURCE_DIR}/libs/imgui/examples/imgui_impl_opengl3.cpp")
-target_include_directories(imgui PUBLIC "${PROJECT_SOURCE_DIR}/libs/imgui" "${PROJECT_BINARY_DIR}/include")
-target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
-
 add_library(imgui-plot STATIC "${PROJECT_SOURCE_DIR}/libs/imgui-plot/src/imgui_plot.cpp")
-target_include_directories(imgui-plot PUBLIC "${PROJECT_SOURCE_DIR}/libs/imgui-plot/include" "${PROJECT_SOURCE_DIR}/libs/imgui")
+target_include_directories(imgui-plot PUBLIC "${PROJECT_SOURCE_DIR}/libs/imgui-plot/include" "${PROJECT_SOURCE_DIR}/libs/bigg/deps/imgui")
 
 add_executable(Audio "${PROJECT_BINARY_DIR}/src/glad.c" "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs" "${PROJECT_SOURCE_DIR}/libs/imgui" "${PROJECT_SOURCE_DIR}/libs/imgui-plot/include" ${GLFW_INCLUDE_DIRS})
-target_link_libraries(Audio ${GLFW_LIBRARIES} ${CMAKE_DL_LIBS} AudioFile fftwpp imgui imgui-plot ${PORTAUDIO_LIBRARIES} Threads::Threads ${FFTW_LIBRARIES})
+target_link_libraries(Audio ${CMAKE_DL_LIBS} AudioFile fftwpp imgui imgui-plot glfw glm Threads::Threads bigg ${PORTAUDIO_LIBRARIES} ${FFTW_LIBRARIES})

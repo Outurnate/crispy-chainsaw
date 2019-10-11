@@ -36,9 +36,9 @@ void main()
 )GLSL";
 
 circleSpectrumScene::circleSpectrumScene()
-  : simpleVBOPosition(0), simpleVBOColor(0), simpleShader(vertexShaderSource, fragmentShaderSource), circlePoints(0)
+  //: simpleVBOPosition(0), simpleVBOColor(0), simpleShader(vertexShaderSource, fragmentShaderSource), circlePoints(0)
 {
-  glGenVertexArrays(1, &simpleVAO);
+  //glGenVertexArrays(1, &simpleVAO);
 }
 
 circleSpectrumScene::~circleSpectrumScene()
@@ -47,7 +47,7 @@ circleSpectrumScene::~circleSpectrumScene()
 
 void circleSpectrumScene::update(const audioStream& stream)
 {
-  glBindVertexArray(simpleVAO);
+/*  glBindVertexArray(simpleVAO);
 
   const audioAnalyzer::fftSpectrumData& data = stream.getLatestFrame().spectrum;
 
@@ -56,8 +56,8 @@ void circleSpectrumScene::update(const audioStream& stream)
   std::vector<float> pointsColors;
 
   std::vector<float> rawData;
-  std::for_each(audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange), audioAnalyzer::rangedEnd(data, spectrumRange::upperMidrange), [&rawData](audioPoint point) { rawData.push_back(point.magnitude); });
 
+  std::for_each(audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange), audioAnalyzer::rangedEnd(data, spectrumRange::upperMidrange), [&rawData](audioPoint point) { rawData.push_back(point.getLeft()); });
   for (unsigned i = 0; i < circlePoints; ++i)
   {
     float radius = 0.25f + (rawData[i] / 15.0f);
@@ -68,6 +68,7 @@ void circleSpectrumScene::update(const audioStream& stream)
     pointsColors.push_back(0.0f);
     pointsColors.push_back(0.0f);
   }
+  std::for_each(audioAnalyzer::rangedBegin(data, spectrumRange::lowMidrange), audioAnalyzer::rangedEnd(data, spectrumRange::upperMidrange), [&rawData](audioPoint point) { rawData.push_back(point.getRight()); });
   for (unsigned i = 0; i < circlePoints; ++i)
   {
     float radius = 0.25f + (rawData[circlePoints - 1 - i] / 15.0f);
@@ -87,12 +88,12 @@ void circleSpectrumScene::update(const audioStream& stream)
   glGenBuffers(1, &simpleVBOColor);
   glBindBuffer(GL_ARRAY_BUFFER, simpleVBOColor);
   glBufferData(GL_ARRAY_BUFFER, pointsColors.size() * sizeof(float), &pointsColors[0], GL_STATIC_DRAW);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);*/
 }
 
 void circleSpectrumScene::render()
 {
-  glClearColor(0, 0, 0, 1);
+/*  glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT);
 
   simpleShader.use();
@@ -101,5 +102,5 @@ void circleSpectrumScene::render()
   glLineWidth(4.0f);
   glDrawArrays(GL_LINE_LOOP, 0, circlePoints * 2);
   glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(1);*/
 }

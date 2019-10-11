@@ -13,10 +13,10 @@ public:
   void render();
   void update(const audioStream& stream);
 private:
-  GLuint simpleVBOPosition;
+  /*GLuint simpleVBOPosition;
   GLuint simpleVBOColor;
   GLuint simpleVAO;
-  GLProgram simpleShader;
+  GLProgram simpleShader;*/
   unsigned circlePoints;
 };
 

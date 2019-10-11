@@ -8,7 +8,7 @@
 #ifndef GL_HPP_
 #define GL_HPP_
 
-#include "imgui.hpp"
+/*#include "imgui.hpp"
 #include <imgui/examples/imgui_impl_glfw.h>
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <glad/glad.h>
@@ -89,7 +89,7 @@ public:
     glAttachShader(id, fragmentShader);
 
     /*glBindAttribLocation(id, 0, "in_Position");
-    glBindAttribLocation(id, 1, "in_Color");*/
+    glBindAttribLocation(id, 1, "in_Color");*//*
 
     glLinkProgram(id);
 
@@ -153,6 +153,6 @@ private:
 };
 
 typedef GLModelData<glm::vec3> GLModelData3;
-typedef GLModelData<glm::vec2> GLModelData2;
+typedef GLModelData<glm::vec2> GLModelData2;*/
 
 #endif /* GL_HPP_ */

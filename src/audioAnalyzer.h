@@ -33,6 +33,16 @@ struct audioPoint
   float magnitude;
   float balance;
 
+  float getLeft()
+  {
+    return ((2 * magnitude) + balance) / 2;
+  }
+
+  float getRight()
+  {
+    return ((2 * magnitude) - balance) / 2;
+  }
+
   audioPoint operator+(const audioPoint& rhs) const { return { this->magnitude + rhs.magnitude, this->balance + rhs.balance }; }
   audioPoint operator-(const audioPoint& rhs) const { return { this->magnitude - rhs.magnitude, this->balance - rhs.balance }; }
 

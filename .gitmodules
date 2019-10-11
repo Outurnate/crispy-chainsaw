@@ -16,3 +16,6 @@
 [submodule "libs/glad"]
 	path = libs/glad
 	url = https://github.com/Dav1dde/glad.git
+[submodule "libs/bigg"]
+	path = libs/bigg
+	url = https://github.com/JoshuaBrookover/bigg.git
