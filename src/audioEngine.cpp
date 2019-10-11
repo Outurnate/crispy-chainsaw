@@ -1,36 +1,35 @@
-#include "audioStream.h"
+#include "audioEngine.hpp"
 
-#include "imgui.hpp"
 #include <iostream>
 #include <queue>
 #include <complex>
 #include <numeric>
 #include <time.h>
 
-audioStream::audioStream() :
-    pos(0), analysisThread(&audioStream::analysis, this)
+audioEngine::audioEngine() :
+    pos(0), analysisThread(&audioEngine::analysis, this)
 {
   portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
 
   portaudio::DirectionSpecificStreamParameters outParams(device,
-      audioAnalyzer::CHANNELS, portaudio::FLOAT32, false, device.defaultLowOutputLatency(),
+      audioSystem::CHANNELS, portaudio::FLOAT32, false, device.defaultLowOutputLatency(),
       NULL);
   portaudio::StreamParameters params(
       portaudio::DirectionSpecificStreamParameters::null(), outParams,
-      audioAnalyzer::SAMPLE_RATE,
+      audioSystem::SAMPLE_RATE,
       FRAMES_PER_BUFFER,
       paClipOff);
 
   stream.reset(
-      new portaudio::MemFunCallbackStream<audioStream>(params, *this,
-          &audioStream::getSample));
+      new portaudio::MemFunCallbackStream<audioEngine>(params, *this,
+          &audioEngine::getSample));
 }
 
-audioStream::~audioStream()
+audioEngine::~audioEngine()
 {
 }
 
-void audioStream::loadFile(const std::string &fileURI)
+void audioEngine::loadFile(const std::string &fileURI)
 {
   // TODO none of this is threadsafe...at all.....
   // we have to stop the stream
@@ -38,21 +37,21 @@ void audioStream::loadFile(const std::string &fileURI)
   file.load(fileURI);
 }
 
-void audioStream::start()
+void audioEngine::start()
 {
   stream->start();
 }
-void audioStream::stop()
+void audioEngine::stop()
 {
   stream->stop();
 }
 
-const bool audioStream::isPlaying() const
+const bool audioEngine::isPlaying() const
 {
   return !stream->isStopped();
 }
 
-int audioStream::getSample(const void *inputBuffer, void *outputBuffer,
+int audioEngine::getSample(const void *inputBuffer, void *outputBuffer,
     unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
@@ -64,7 +63,7 @@ int audioStream::getSample(const void *inputBuffer, void *outputBuffer,
 
   float **out = static_cast<float**>(outputBuffer);
   for (unsigned i = 0; i < framesPerBuffer; ++i)
-    for (unsigned channel = 0; channel < audioAnalyzer::CHANNELS; ++channel)
+    for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
     {
       out[channel][i] = file.samples[channel % file.getNumChannels()][pos + i]; // if file has less channels, limit to CHANNELS, if CHANNELS is more than file channels, copy channel
       if (!analysisQueue[channel].push(out[channel][i]))
@@ -78,18 +77,18 @@ int audioStream::getSample(const void *inputBuffer, void *outputBuffer,
   return paContinue;
 }
 
-void audioStream::analysis()
+void audioEngine::analysis()
 {
   struct timespec time;
   time.tv_sec = 0;
   time.tv_nsec = 500;
 
-  std::array<std::queue<float>, analyzer::CHANNELS> window;
+  std::array<std::queue<float>, audioSystem::CHANNELS> window;
 
   while (true)
   {
     for (unsigned i = 0; i < FRAMES_PER_BUFFER; ++i)
-      for (unsigned channel = 0; channel < analyzer::CHANNELS; ++channel)
+      for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
       {
         float data;
         while (!analysisQueue[channel].pop(data))
@@ -98,13 +97,13 @@ void audioStream::analysis()
       }
 
     if (std::any_of(window.begin(), window.end(), [](const std::queue<float> &i) 
-    { return i.size() < analyzer::WINDOW_SIZE;}))
+    { return i.size() < audioSystem::WINDOW_SIZE;}))
       continue; // we don't have enough samples to do FFT yet
 
-    analyzer::audioSourceFrame sourceSample;
-    for (unsigned channel = 0; channel < analyzer::CHANNELS; ++channel)
+    audioSourceFrame sourceSample;
+    for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
     {
-      for (unsigned i = 0; i < analyzer::WINDOW_SIZE; ++i)
+      for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
       {
         sourceSample[channel][i] = window[channel].front();
         window[channel].pop();
@@ -115,7 +114,7 @@ void audioStream::analysis()
   }
 }
 
-void audioStream::renderImGui() const
+void audioEngine::renderImGui() const
 {
   /*std::array<float, analyzer::FFT_BINS> data;
   ImGui::PlotConfig conf;
@@ -150,7 +149,7 @@ void audioStream::renderImGui() const
   ImGui::End();*/
 }
 
-const audioStream::analyzer::audioAnalyzedFrame& audioStream::getLatestFrame() const
+const audioAnalyzedFrame& audioEngine::getLatestFrame() const
 {
   return analysisEngine.getData();
 }

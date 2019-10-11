@@ -1,4 +1,4 @@
-#include "audioStream.h"
+#include "audioEngine.hpp"
 #include "circleSpectrumScene.hpp"
 #include "gl.hpp"
 

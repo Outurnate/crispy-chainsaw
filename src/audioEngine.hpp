@@ -1,30 +1,29 @@
-#ifndef AUDIOSTREAM_H_
-#define AUDIOSTREAM_H_
+#ifndef AUDIOENGINE_HPP
+#define AUDIOENGINE_HPP
 
 #include <memory>
 #include <thread>
 #include <array>
-#include <boost/circular_buffer.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 #include <portaudiocpp/PortAudioCpp.hxx>
 #include <AudioFile.h>
 
-#include "audioAnalyzer.h"
+#include "audioAnalyzer.hpp"
 
-class audioStream : private portaudio::AutoSystem
+class audioEngine : private portaudio::AutoSystem
 {
 public:
   typedef audioAnalyzer analyzer;
 
-  audioStream();
-  virtual ~audioStream();
+  audioEngine();
+  virtual ~audioEngine();
 
   void loadFile(const std::string &fileURI);
   void start();
   void stop();
   const bool isPlaying() const;
   void renderImGui() const;
-  const analyzer::audioAnalyzedFrame& getLatestFrame() const;
+  const audioAnalyzedFrame& getLatestFrame() const;
 private:
   static constexpr unsigned FRAMES_PER_BUFFER = 64;
 
@@ -34,13 +33,13 @@ private:
   void analysis();
 
   AudioFile<double> file;
-  std::unique_ptr<portaudio::MemFunCallbackStream<audioStream> > stream;
+  std::unique_ptr<portaudio::MemFunCallbackStream<audioEngine> > stream;
 
   unsigned long pos;
   std::thread analysisThread;
   std::array<
       boost::lockfree::spsc_queue<float,
-          boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, analyzer::CHANNELS> analysisQueue; // 32 is completely arbitrary
+          boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, audioSystem::CHANNELS> analysisQueue; // 32 is completely arbitrary
   analyzer analysisEngine;
 };
 

@@ -1,23 +1,21 @@
-#ifndef CIRCLESPECTRUMSCENE_H_
-#define CIRCLESPECTRUMSCENE_H_
+#ifndef CIRCLESPECTRUMSCENE_HPP
+#define CIRCLESPECTRUMSCENE_HPP
 
-#include "gl.hpp"
-#include "audioStream.h"
+#include <bgfx/bgfx.h>
+#include "sceneManager.hpp"
 
-class circleSpectrumScene
+class circleSpectrumScene : public scene
 {
 public:
   circleSpectrumScene();
   virtual ~circleSpectrumScene();
 
-  void render();
-  void update(const audioStream& stream);
+  void update(double delta, float width, float height) override;
 private:
-  /*GLuint simpleVBOPosition;
-  GLuint simpleVBOColor;
-  GLuint simpleVAO;
-  GLProgram simpleShader;*/
-  unsigned circlePoints;
+  bgfx::ProgramHandle mProgram;
+  bgfx::VertexBufferHandle mVbh;
+  bgfx::IndexBufferHandle mIbh;
+  float mTime;
 };
 
 #endif

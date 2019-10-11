@@ -1,52 +1,115 @@
 #include "circleSpectrumScene.hpp"
 
-#include <vector>
-#include <algorithm>
+#include <bigg.hpp>
+#include <bx/string.h>
+
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
+
 #include <iostream>
-#include <sstream>
-#include <fstream>
 
-const char* vertexShaderSource = R"GLSL(
-#version 330 core
-
-layout(location = 0) in vec2 vertexPosition;
-layout(location = 1) in vec3 vertexColor;
-
-out vec3 ex_Color;
-
-void main()
+struct PosColorVertex
 {
-  gl_Position.xy = vertexPosition;
-  gl_Position.zw = vec2(0.0, 1.0);
+  float x;
+  float y;
+  float z;
+  uint32_t abgr;
 
-  ex_Color = vertexColor;
-}
-)GLSL";
-const char* fragmentShaderSource = R"GLSL(
-#version 330 core
-precision highp float;
+  static void init()
+  {
+    msLayout
+      .begin()
+      .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+      .add(bgfx::Attrib::Color0,   4, bgfx::AttribType::Uint8, true)
+      .end();
+  };
 
-in  vec3 ex_Color;
-out vec4 fragColor;
+  static bgfx::VertexDecl msLayout;
+};
+bgfx::VertexDecl PosColorVertex::msLayout;
 
-void main()
+static PosColorVertex s_cubeVertices[] =
 {
-  fragColor = vec4(ex_Color, 1.0);
-}
-)GLSL";
+  {-1.0f,  1.0f,  1.0f, 0xff000000 },
+  { 1.0f,  1.0f,  1.0f, 0xff0000ff },
+  {-1.0f, -1.0f,  1.0f, 0xff00ff00 },
+  { 1.0f, -1.0f,  1.0f, 0xff00ffff },
+  {-1.0f,  1.0f, -1.0f, 0xffff0000 },
+  { 1.0f,  1.0f, -1.0f, 0xffff00ff },
+  {-1.0f, -1.0f, -1.0f, 0xffffff00 },
+  { 1.0f, -1.0f, -1.0f, 0xffffffff },
+};
+static const uint16_t s_cubeTriList[] = { 2, 1, 0, 2, 3, 1, 5, 6, 4, 7, 6, 5, 4, 2, 0, 6, 2, 4, 3, 5, 1, 3, 7, 5, 1, 4, 0, 1, 5, 4, 6, 3, 2, 7, 3, 6 };
 
 circleSpectrumScene::circleSpectrumScene()
-  //: simpleVBOPosition(0), simpleVBOColor(0), simpleShader(vertexShaderSource, fragmentShaderSource), circlePoints(0)
 {
-  //glGenVertexArrays(1, &simpleVAO);
+  PosColorVertex::init();
+
+  char vsName[64];
+  char fsName[64];
+
+  const char* shaderPath = "???";
+
+  switch (bgfx::getRendererType())
+  {
+    case bgfx::RendererType::Noop:
+    case bgfx::RendererType::Direct3D9:  shaderPath = "shaders/dx9/";   break;
+    case bgfx::RendererType::Direct3D11:
+    case bgfx::RendererType::Direct3D12: shaderPath = "shaders/dx11/";  break;
+    case bgfx::RendererType::Gnm:                                       break;
+    case bgfx::RendererType::Metal:      shaderPath = "shaders/metal/"; break;
+    case bgfx::RendererType::OpenGL:     shaderPath = "shaders/glsl/";  break;
+    case bgfx::RendererType::OpenGLES:   shaderPath = "shaders/essl/";  break;
+    case bgfx::RendererType::Vulkan:                                    break;
+    case bgfx::RendererType::Count:                                     break;
+  }
+
+  shaderPath = "assets/shaders/glsl/";
+
+  bx::strCopy(vsName, BX_COUNTOF(vsName), shaderPath);
+  bx::strCat(vsName, BX_COUNTOF(vsName), "vs_cubes.bin");
+
+  bx::strCopy(fsName, BX_COUNTOF(fsName), shaderPath);
+  bx::strCat(fsName, BX_COUNTOF(fsName), "fs_cubes.bin");
+
+  std::cout << vsName << std::endl;
+  std::cout << fsName << std::endl;
+
+  mProgram = bigg::loadProgram(vsName, fsName);
+  mVbh = bgfx::createVertexBuffer(bgfx::makeRef(s_cubeVertices, sizeof(s_cubeVertices)), PosColorVertex::msLayout);
+  mIbh = bgfx::createIndexBuffer(bgfx::makeRef(s_cubeTriList, sizeof(s_cubeTriList)));
+  bgfx::setDebug(BGFX_DEBUG_TEXT);
+  mTime = 0.0f;
 }
 
 circleSpectrumScene::~circleSpectrumScene()
 {
 }
 
-void circleSpectrumScene::update(const audioStream& stream)
+void circleSpectrumScene::update(double delta, float width, float height)
 {
+  mTime += delta;
+  glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, -35.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+  glm::mat4 proj = glm::perspective(glm::radians(60.0f), width / height, 0.1f, 100.0f);
+  bgfx::setViewTransform(0, &view[0][0], &proj[0][0]);
+  bgfx::setViewRect(0, 0, 0, uint16_t(width), uint16_t(height));
+  bgfx::touch(0);
+  for (uint32_t yy = 0; yy < 11; ++yy)
+  {
+    for (uint32_t xx = 0; xx < 11; ++xx)
+    {
+      glm::mat4 mtx = glm::identity<glm::mat4>();
+      mtx = glm::translate(mtx, glm::vec3(15.0f - float(xx) * 3.0f, -15.0f + float(yy) * 3.0f, 0.0f));
+      mtx *= glm::yawPitchRoll(mTime + xx * 0.21f, mTime + yy * 0.37f, 0.0f);
+      bgfx::setTransform(&mtx[0][0]);
+      bgfx::setVertexBuffer(0, mVbh);
+      bgfx::setIndexBuffer(mIbh);
+      bgfx::setState(BGFX_STATE_DEFAULT);
+      bgfx::submit(0, mProgram);
+    }
+  }
+}
+
 /*  glBindVertexArray(simpleVAO);
 
   const audioAnalyzer::fftSpectrumData& data = stream.getLatestFrame().spectrum;
@@ -89,10 +152,9 @@ void circleSpectrumScene::update(const audioStream& stream)
   glBindBuffer(GL_ARRAY_BUFFER, simpleVBOColor);
   glBufferData(GL_ARRAY_BUFFER, pointsColors.size() * sizeof(float), &pointsColors[0], GL_STATIC_DRAW);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);*/
-}
 
-void circleSpectrumScene::render()
-{
+//void circleSpectrumScene::render()
+//{
 /*  glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -103,4 +165,4 @@ void circleSpectrumScene::render()
   glDrawArrays(GL_LINE_LOOP, 0, circlePoints * 2);
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);*/
-}
+//}
