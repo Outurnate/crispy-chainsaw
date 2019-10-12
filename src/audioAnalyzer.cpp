@@ -1,12 +1,11 @@
 #include "audioAnalyzer.hpp"
+#include "audioEngine.hpp"
 
 #include <fftwpp/Array.h>
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
 #include <fftwpp/fftw++.h>
 #pragma clang diagnostic pop
-
-#include <iostream>
 
 // https://dlbeer.co.nz/articles/fftvis.html
 // https://stackoverflow.com/a/20584591
@@ -55,7 +54,7 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
     {
       float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
-      float currentFrequency = labels.labels[i];
+      float currentFrequency = audioSystem::labels.labels[i];
       float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, 2);
       analyzedSample[channel][i] = gammaCoefficient * lerp(previousFrame.spectrum[i].magnitude / gammaCoefficient, d, 0.20f);
     }

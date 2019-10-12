@@ -17,7 +17,7 @@ find_package(FFTW REQUIRED)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg")
 
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp" "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp")
 
 add_library(AudioFile STATIC "${PROJECT_SOURCE_DIR}/libs/AudioFile/AudioFile.cpp")
 target_include_directories(AudioFile PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile")

@@ -14,6 +14,8 @@ public:
 
   void initialize(int argc, char** argv) override
   {
+    init();
+
     scene.registerScene<circleSpectrumScene>("Circle Spectrum");
     scene.setScene("Circle Spectrum");
   }

@@ -43,4 +43,4 @@ private:
   analyzer analysisEngine;
 };
 
-#endif /* AUDIOSTREAM_H_ */
+#endif

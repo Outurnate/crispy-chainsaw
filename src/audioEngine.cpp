@@ -23,6 +23,9 @@ audioEngine::audioEngine() :
   stream.reset(
       new portaudio::MemFunCallbackStream<audioEngine>(params, *this,
           &audioEngine::getSample));
+
+  this->loadFile(std::string("/home/joseph/eclipse/audio_bak/Debug/test.wav"));
+  this->start();
 }
 
 audioEngine::~audioEngine()

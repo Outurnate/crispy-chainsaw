@@ -26,12 +26,12 @@ struct audioPoint
   float magnitude;
   float balance;
 
-  float getLeft()
+  float getLeft() const
   {
     return ((2 * magnitude) + balance) / 2;
   }
 
-  float getRight()
+  float getRight() const
   {
     return ((2 * magnitude) - balance) / 2;
   }
@@ -73,6 +73,15 @@ public:
   static constexpr unsigned WINDOW_SIZE = SAMPLE_RATE / MINIMUM_FREQUENCY;
   static constexpr unsigned FFT_BINS = (WINDOW_SIZE / 2) + 1;
   static constexpr unsigned MAXIMUM_FREQUENCY = (FFT_BINS - 1) * SAMPLE_RATE / FFT_BINS;
+
+  static constexpr binLabels<audioSystem::FFT_BINS, audioSystem::SAMPLE_RATE> labels = binLabels<audioSystem::FFT_BINS, audioSystem::SAMPLE_RATE>();
+
+  static constexpr size_t subBassIndex = getIndex(labels, 60);
+  static constexpr size_t bassIndex = getIndex(labels, 250);
+  static constexpr size_t lowMidrangeIndex = getIndex(labels, 500);
+  static constexpr size_t midrangeIndex = getIndex(labels, 2000);
+  static constexpr size_t upperMidrangeIndex = getIndex(labels, 4000);
+  static constexpr size_t presenceIndex = getIndex(labels, 6000);
 };
 
 typedef std::array<audioPoint, audioSystem::FFT_BINS> fftSpectrumData;
@@ -86,5 +95,90 @@ struct audioAnalyzedFrame
 
   audioAnalyzedFrame() : spectrum(), hasBeat(false), tempo(0.0f) {}
 };
+
+static inline constexpr size_t getStartIndex(spectrumRange range)
+{
+  size_t val = 0;
+  switch (range)
+  {
+  case spectrumRange::subBass:
+    val = 0;
+    break;
+  case spectrumRange::bass:
+    val = audioSystem::subBassIndex;
+    break;
+  case spectrumRange::lowMidrange:
+    val = audioSystem::bassIndex;
+    break;
+  case spectrumRange::midrange:
+    val = audioSystem::lowMidrangeIndex;
+    break;
+  case spectrumRange::upperMidrange:
+    val = audioSystem::midrangeIndex;
+    break;
+  case spectrumRange::presence:
+    val = audioSystem::upperMidrangeIndex;
+    break;
+  case spectrumRange::brilliance:
+    val = audioSystem::presenceIndex;
+    break;
+  }
+  return val;
+}
+
+static inline constexpr size_t getEndIndex(spectrumRange range)
+{
+  size_t val = 0;
+  switch (range)
+  {
+  case spectrumRange::subBass:
+    val = audioSystem::subBassIndex;
+    break;
+  case spectrumRange::bass:
+    val = audioSystem::bassIndex;
+    break;
+  case spectrumRange::lowMidrange:
+    val = audioSystem::lowMidrangeIndex;
+    break;
+  case spectrumRange::midrange:
+    val = audioSystem::midrangeIndex;
+    break;
+  case spectrumRange::upperMidrange:
+    val = audioSystem::upperMidrangeIndex;
+    break;
+  case spectrumRange::presence:
+    val = audioSystem::presenceIndex;
+    break;
+  case spectrumRange::brilliance:
+    val = audioSystem::FFT_BINS;
+    break;
+  }
+  return val;
+}
+
+static inline constexpr size_t rangedSize(spectrumRange range)
+{
+  return getEndIndex(range) - getStartIndex(range);
+}
+
+static inline const fftSpectrumData::const_iterator rangedBegin(const fftSpectrumData& array, spectrumRange range)
+{
+  return array.cbegin() + getStartIndex(range);
+}
+
+static inline const fftSpectrumData::const_iterator rangedEnd(const fftSpectrumData& array, spectrumRange range)
+{
+  return array.cbegin() + getEndIndex(range);
+}
+
+static inline const std::reverse_iterator<fftSpectrumData::const_iterator> rrangedBegin(const fftSpectrumData& array, spectrumRange range)
+{
+  return array.crbegin() + getStartIndex(range);
+}
+
+static inline const std::reverse_iterator<fftSpectrumData::const_iterator> rrangedEnd(const fftSpectrumData& array, spectrumRange range)
+{
+  return array.crbegin() + getEndIndex(range);
+}
 
 #endif

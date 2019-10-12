@@ -4,13 +4,16 @@
 #include <memory>
 #include <unordered_map>
 
+#include "audioSystem.hpp"
+#include "audioEngine.hpp"
+
 class scene
 {
 public:
   scene() { }
   virtual ~scene() { }
 
-  virtual void update(double delta, float width, float height) = 0;
+  virtual void update(const audioAnalyzedFrame& audioFrame, double delta, float width, float height) = 0;
 };
 
 class sceneManager
@@ -28,7 +31,7 @@ public:
   void update(double delta, float width, float height) const
   {
     if (currentScene)
-      currentScene->update(delta, width, height);
+      currentScene->update(engine.getLatestFrame(), delta, width, height);
   }
   void setScene(const std::string& name)
   {
@@ -59,6 +62,7 @@ private:
 
   std::unordered_map<std::string, std::unique_ptr<abstractSceneFactory> > scenes;
   std::unique_ptr<scene> currentScene;
+  audioEngine engine;
 };
 
 #endif
