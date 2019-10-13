@@ -85,15 +85,14 @@ public:
 };
 
 typedef std::array<audioPoint, audioSystem::FFT_BINS> fftSpectrumData;
-typedef std::array<std::array<float, audioSystem::WINDOW_SIZE>, audioSystem::CHANNELS> audioSourceFrame;
+typedef std::array<std::array<double, audioSystem::WINDOW_SIZE>, audioSystem::CHANNELS> audioSourceFrame;
 
 struct audioAnalyzedFrame
 {
   fftSpectrumData spectrum;
-  bool hasBeat;
   double tempo;
 
-  audioAnalyzedFrame() : spectrum(), hasBeat(false), tempo(0.0f) {}
+  audioAnalyzedFrame() : spectrum(), tempo(0.0f) {}
 };
 
 static inline constexpr size_t getStartIndex(spectrumRange range)

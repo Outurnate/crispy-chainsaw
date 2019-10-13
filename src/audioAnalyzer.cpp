@@ -11,7 +11,9 @@
 // https://stackoverflow.com/a/20584591
 
 audioAnalyzer::audioAnalyzer()
+  : beatTracker(audioSystem::WINDOW_SIZE / 2, audioSystem::WINDOW_SIZE)
 {
+  fftwpp::fftw::maxthreads = get_max_threads();
 }
 
 audioAnalyzer::~audioAnalyzer()
@@ -24,6 +26,12 @@ inline T lerp(T a, T b, T alpha)
   return alpha * a + ((1 - alpha) * b);
 }
 
+template<typename T>
+inline T clamp(T a, T minV, T maxV)
+{
+  return std::min(std::max(minV, a), maxV);
+}
+
 inline float calculateGamma(float currentFrequency, float maxFrequency, float gamma)
 {
   return pow((currentFrequency / maxFrequency), (1 / gamma));
@@ -31,7 +39,6 @@ inline float calculateGamma(float currentFrequency, float maxFrequency, float ga
 
 void audioAnalyzer::analyze(const audioSourceFrame& sample)
 {
-  fftwpp::fftw::maxthreads = get_max_threads();
   std::array<std::array<float, audioSystem::FFT_BINS>, audioSystem::CHANNELS> analyzedSample;
 
   // analyze a sample
@@ -55,8 +62,8 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     {
       float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
       float currentFrequency = audioSystem::labels.labels[i];
-      float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, 2);
-      analyzedSample[channel][i] = gammaCoefficient * lerp(previousFrame.spectrum[i].magnitude / gammaCoefficient, d, 0.20f);
+      float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, currentParams.gamma);
+      analyzedSample[channel][i] = clamp(currentParams.scale * gammaCoefficient * lerp(previousFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f);
     }
   }
 
@@ -67,14 +74,31 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
       sum += analyzedSample[channel][i];
     audioPoints[i].magnitude = sum / audioSystem::CHANNELS;
-    audioPoints[i].balance = audioSystem::CHANNELS == 2 ? (analyzedSample[0][i] - analyzedSample[1][i]) : 0.0f;
+    audioPoints[i].balance = clamp(audioSystem::CHANNELS == 2 ? (analyzedSample[0][i] - analyzedSample[1][i]) : 0.0f, -2.0f, 2.0f);
+  }
+
+  {
+    audioSourceFrame temp = sample; //TODO modify BTrack so this isn't needed
+    beatTracker.processAudioFrame(temp[0].data());
   }
 
   previousFrame = currentFrame;
+
   currentFrame.spectrum = audioPoints;
+  currentFrame.tempo = beatTracker.getCurrentTempoEstimate();
 }
 
 const audioAnalyzedFrame& audioAnalyzer::getData() const
 {
   return currentFrame;
+}
+
+const audioAnalyzer::params& audioAnalyzer::getParams() const
+{
+  return currentParams;
+}
+
+void audioAnalyzer::setParams(const audioAnalyzer::params& newParams)
+{
+  currentParams = newParams;
 }

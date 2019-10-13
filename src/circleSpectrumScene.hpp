@@ -11,7 +11,8 @@ public:
   circleSpectrumScene();
   virtual ~circleSpectrumScene();
 
-  void update(const audioAnalyzedFrame& audioFrame, double delta, float width, float height) override;
+  void update(double delta, float width, float height) override;
+  void updateAudio(const audioAnalyzedFrame& audioFrame) override;
 private:
   void updateBuffers(const audioAnalyzedFrame& audioFrame);
 

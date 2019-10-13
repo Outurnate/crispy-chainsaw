@@ -10,39 +10,33 @@
 class scene
 {
 public:
-  scene() { }
-  virtual ~scene() { }
+  scene();
+  virtual ~scene();
 
-  virtual void update(const audioAnalyzedFrame& audioFrame, double delta, float width, float height) = 0;
+  virtual void update(double delta, float width, float height) = 0;
+  virtual void updateAudio(const audioAnalyzedFrame& audioFrame) = 0;
 };
 
 class sceneManager
 {
 public:
-  sceneManager()
-    : scenes(), currentScene(nullptr) { }
-  virtual ~sceneManager() { }
+  sceneManager();
+  virtual ~sceneManager();
 
   template<typename T>
   void registerScene(const std::string& name)
   {
     scenes.emplace(name, new sceneFactory<T>());
   }
-  void update(double delta, float width, float height) const
-  {
-    if (currentScene)
-      currentScene->update(engine.getLatestFrame(), delta, width, height);
-  }
-  void setScene(const std::string& name)
-  {
-    currentScene.reset(scenes.at(name)->createScene());
-  }
+  void update(double delta, float width, float height);
+  void setScene(const std::string& name);
+  void updateAudio(const audioAnalyzedFrame& frame);
 private:
   class abstractSceneFactory
   {
   public:
-    abstractSceneFactory() { }
-    virtual ~abstractSceneFactory() { }
+    abstractSceneFactory();
+    virtual ~abstractSceneFactory();
 
     virtual scene* createScene() const = 0;
   };
@@ -51,8 +45,8 @@ private:
   class sceneFactory : public abstractSceneFactory
   {
   public:
-    sceneFactory() { }
-    ~sceneFactory() { }
+    sceneFactory() {}
+    ~sceneFactory() {}
 
     scene* createScene() const override
     {
@@ -63,6 +57,7 @@ private:
   std::unordered_map<std::string, std::unique_ptr<abstractSceneFactory> > scenes;
   std::unique_ptr<scene> currentScene;
   audioEngine engine;
+  audioAnalyzedFrame lastFrame;
 };
 
 #endif

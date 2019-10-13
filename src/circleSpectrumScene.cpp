@@ -66,15 +66,15 @@ circleSpectrumScene::~circleSpectrumScene()
 {
 }
 
-void circleSpectrumScene::updateBuffers(const audioAnalyzedFrame& audioFrame)
+void circleSpectrumScene::updateAudio(const audioAnalyzedFrame& audioFrame)
 {
   // begin lazy inefficient code TODO
   std::vector<float> left, right, combined;
   std::for_each(rangedBegin(audioFrame.spectrum, spectrumRange::lowMidrange), rangedEnd(audioFrame.spectrum, spectrumRange::upperMidrange), [&left, &right](audioPoint point) { left.push_back(point.getLeft()); right.push_back(point.getRight()); });
   std::reverse(right.begin(), right.end());
-  for (float x : left)
-    combined.push_back(x);
   for (float x : right)
+    combined.push_back(x);
+  for (float x : left)
     combined.push_back(x);
   // end lazy inefficient code TODO
 
@@ -82,7 +82,7 @@ void circleSpectrumScene::updateBuffers(const audioAnalyzedFrame& audioFrame)
   float width = 0.01f;
   for (unsigned i = 0; i < points; ++i)
   {
-    float radius = baseRadius + (combined[i] / 15.0f);
+    float radius = baseRadius + (combined[i] / 7.0f);
     float theta = float(i) / float(points) * (2 * M_PI);
     theta += M_PI / 2;
 
@@ -95,10 +95,9 @@ void circleSpectrumScene::updateBuffers(const audioAnalyzedFrame& audioFrame)
   bgfx::update(circleVBO, 0, bgfx::copy(vertexBuffer.data(), sizeof(positionColorVertex) * vertexBuffer.size()));
 }
 
-void circleSpectrumScene::update(const audioAnalyzedFrame& audioFrame, double delta, float width, float height)
+void circleSpectrumScene::update(double delta, float width, float height)
 {
   float aspect = width / height;
-  updateBuffers(audioFrame);
 
   glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, -35.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
   glm::mat4 proj = glm::ortho(-1 * aspect, aspect, -1.0f, 1.0f, -50.0f, 50.0f);

@@ -14,10 +14,15 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(Portaudio REQUIRED)
 find_package(FFTW REQUIRED)
+find_package(LibSamplerate REQUIRED)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg")
 
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp" "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp" "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp" "${PROJECT_SOURCE_DIR}/src/sceneManager.cpp")
+
+add_library(BTrack STATIC "${PROJECT_SOURCE_DIR}/libs/BTrack/src/BTrack.cpp" "${PROJECT_SOURCE_DIR}/libs/BTrack/src/OnsetDetectionFunction.cpp")
+target_include_directories(BTrack PUBLIC "${PROJECT_SOURCE_DIR}/libs/BTrack/src" ${LIBSAMPLERATE_INCLUDE_DIR})
+target_compile_definitions(BTrack PUBLIC USE_FFTW)
 
 add_library(AudioFile STATIC "${PROJECT_SOURCE_DIR}/libs/AudioFile/AudioFile.cpp")
 target_include_directories(AudioFile PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile")
@@ -30,6 +35,6 @@ target_include_directories(imgui-plot PUBLIC "${PROJECT_SOURCE_DIR}/libs/imgui-p
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs" "${PROJECT_SOURCE_DIR}/libs/imgui" "${PROJECT_SOURCE_DIR}/libs/imgui-plot/include" ${GLFW_INCLUDE_DIRS})
-target_link_libraries(Audio ${CMAKE_DL_LIBS} AudioFile fftwpp imgui imgui-plot glfw glm Threads::Threads bigg ${PORTAUDIO_LIBRARIES} ${FFTW_LIBRARIES})
+target_link_libraries(Audio ${CMAKE_DL_LIBS} AudioFile BTrack fftwpp imgui imgui-plot glfw glm Threads::Threads bigg ${PORTAUDIO_LIBRARIES} ${FFTW_LIBRARIES} ${LIBSAMPLERATE_LIBRARY})
 
 file(COPY "${PROJECT_SOURCE_DIR}/assets" DESTINATION "${PROJECT_BINARY_DIR}")

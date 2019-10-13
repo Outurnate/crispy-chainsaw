@@ -6,8 +6,8 @@
 #include <numeric>
 #include <time.h>
 
-audioEngine::audioEngine() :
-    pos(0), analysisThread(&audioEngine::analysis, this)
+audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback) :
+    pos(0), analysisThread(&audioEngine::analysis, this), analyzedFrameCallback(analyzedFrameCallback)
 {
   portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
 
@@ -114,45 +114,16 @@ void audioEngine::analysis()
     }
 
     analysisEngine.analyze(sourceSample);
+    analyzedFrameCallback(analysisEngine.getData());
   }
 }
 
-void audioEngine::renderImGui() const
+const audioAnalyzer::params& audioEngine::getParams() const
 {
-  /*std::array<float, analyzer::FFT_BINS> data;
-  ImGui::PlotConfig conf;
-
-  ImGui::Begin("Audio data", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-  for (unsigned i = 0; i < analyzer::FFT_BINS; ++i)
-    data[i] = getLatestFrame().spectrum.at(i).magnitude;
-  conf.values.ys = data.data();
-  conf.values.count = analyzer::FFT_BINS;
-  conf.scale.min = 0;
-  conf.scale.max = 7.5f;
-  conf.tooltip.show = true;
-  conf.tooltip.format = "x=%.2f, y=%.2f";
-  conf.grid_x.show = false;
-  conf.grid_y.show = true;
-  conf.frame_size = ImVec2(50 * 7, 75);
-  conf.line_thickness = 2.f;
-  ImGui::Plot("plot", conf);
-  for (unsigned i = 0; i < analyzer::FFT_BINS; ++i)
-    data[i] = getLatestFrame().spectrum.at(i).balance;
-  conf.values.ys = data.data();
-  conf.values.count = analyzer::FFT_BINS;
-  conf.scale.min = -2.5f;
-  conf.scale.max = 2.5f;
-  conf.tooltip.show = true;
-  conf.tooltip.format = "x=%.2f, y=%.2f";
-  conf.grid_x.show = false;
-  conf.grid_y.show = true;
-  conf.frame_size = ImVec2(50 * 7, 75);
-  conf.line_thickness = 2.f;
-  ImGui::Plot("plot", conf);
-  ImGui::End();*/
+  return analysisEngine.getParams();
 }
 
-const audioAnalyzedFrame& audioEngine::getLatestFrame() const
+void audioEngine::setParams(const audioAnalyzer::params& newParams)
 {
-  return analysisEngine.getData();
+  analysisEngine.setParams(newParams);
 }
