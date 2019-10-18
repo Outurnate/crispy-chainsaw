@@ -63,7 +63,7 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
       float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
       float currentFrequency = audioSystem::labels.labels[i];
       float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, currentParams.gamma);
-      analyzedSample[channel][i] = clamp(currentParams.scale * gammaCoefficient * lerp(previousFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f);
+      analyzedSample[channel][i] = clamp(currentParams.scale * gammaCoefficient * lerp(currentFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f); // TODO alpha calc bleeds between channels
     }
   }
 
@@ -81,8 +81,6 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     audioSourceFrame temp = sample; //TODO modify BTrack so this isn't needed
     beatTracker.processAudioFrame(temp[0].data());
   }
-
-  previousFrame = currentFrame;
 
   currentFrame.spectrum = audioPoints;
   currentFrame.tempo = beatTracker.getCurrentTempoEstimate();

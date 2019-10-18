@@ -5,10 +5,10 @@
 
 using namespace std::placeholders;
 
-scene::scene() {}
+scene::scene(resourceManager& resources) {}
 scene::~scene() {}
 
-sceneManager::sceneManager() : scenes(), currentScene(nullptr), engine(std::bind(&sceneManager::updateAudio, this, _1))
+sceneManager::sceneManager(bigg::Allocator& allocator) : scenes(), currentScene(nullptr), engine(std::bind(&sceneManager::updateAudio, this, _1)), currentItem(0), resources(allocator)
 {
 }
 
@@ -43,32 +43,44 @@ void sceneManager::update(double delta, float width, float height)
 
   ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - MARGIN, MARGIN), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
   ImGui::SetNextWindowBgAlpha(0.35f);
-  ImGui::Begin("Audio data", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+  ImGui::Begin("config", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
 
-  std::array<float, audioSystem::FFT_BINS> data;
+  if (ImGui::CollapsingHeader("Audio data"))
+  {
+    std::array<float, audioSystem::FFT_BINS> data;
 
-  for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-    data[i] = lastFrame.spectrum.at(i).magnitude;
-  plotValues(data.data(), audioSystem::FFT_BINS, 0.0f, 1.0f);
+    for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
+      data[i] = lastFrame.spectrum.at(i).magnitude;
+    plotValues(data.data(), audioSystem::FFT_BINS, 0.0f, 1.0f);
 
-  for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-    data[i] = lastFrame.spectrum.at(i).balance;
-  plotValues(data.data(), audioSystem::FFT_BINS, -2.0f, 2.0f);
+    for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
+      data[i] = lastFrame.spectrum.at(i).balance;
+    plotValues(data.data(), audioSystem::FFT_BINS, -2.0f, 2.0f);
 
-  ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
+    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
 
-  audioAnalyzer::params params = engine.getParams();
-  ImGui::SliderFloat("Alpha", &params.alpha, 0.0f, 1.0f);
-  ImGui::SliderFloat("Gamma", &params.gamma, 0.0f, 10.0f);
-  ImGui::SliderFloat("Scale", &params.scale, 0.0f, 1.0f);
-  engine.setParams(params);
+    audioAnalyzer::params params = engine.getParams();
+    ImGui::SliderFloat("Alpha", &params.alpha, 0.0f, 1.0f);
+    ImGui::SliderFloat("Gamma", &params.gamma, 0.0f, 10.0f);
+    ImGui::SliderFloat("Scale", &params.scale, 0.0f, 1.0f);
+    engine.setParams(params);
+  }
+
+  if (ImGui::CollapsingHeader("Configuration"))
+  {
+    int previousItem = currentItem;
+    struct func { static bool get(void* data, int idx, const char** outStr) { *outStr = (*reinterpret_cast<std::vector<std::string>* >(data))[idx].c_str(); return true; } };
+    ImGui::Combo("Scene", &currentItem, &func::get, &sceneNames, sceneNames.size());
+    if (previousItem != currentItem)
+      setScene(currentItem);
+  }
 
   ImGui::End();
 }
 
-void sceneManager::setScene(const std::string& name)
+void sceneManager::setScene(const size_t& index)
 {
-  currentScene.reset(scenes.at(name)->createScene());
+  currentScene.reset(scenes.at(index)->createScene(resources));
 }
 
 void sceneManager::updateAudio(const audioAnalyzedFrame& frame)
@@ -77,4 +89,10 @@ void sceneManager::updateAudio(const audioAnalyzedFrame& frame)
     currentScene->updateAudio(frame);
 
   lastFrame = frame;
+}
+
+void sceneManager::onReset(uint32_t width, uint32_t height)
+{
+  if (currentScene)
+    currentScene->onReset(width, height);
 }

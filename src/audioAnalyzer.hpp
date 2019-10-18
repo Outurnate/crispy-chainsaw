@@ -22,7 +22,7 @@ public:
   const params& getParams() const;
   void setParams(const params& newParams);
 private:
-  audioAnalyzedFrame currentFrame, previousFrame;
+  audioAnalyzedFrame currentFrame;
   BTrack beatTracker;
   params currentParams;
 };

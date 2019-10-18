@@ -16,9 +16,16 @@ find_package(Portaudio REQUIRED)
 find_package(FFTW REQUIRED)
 find_package(LibSamplerate REQUIRED)
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg" EXCLUDE_FROM_ALL)
 
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp" "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp" "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp" "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp" "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp" "${PROJECT_SOURCE_DIR}/src/sceneManager.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
+               "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp"
+               "${PROJECT_SOURCE_DIR}/src/sceneManager.cpp"
+               "${PROJECT_SOURCE_DIR}/src/resourceManager.cpp"
+               "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp"
+               "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp"
+               "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp"
+               "${PROJECT_SOURCE_DIR}/src/warpScene.cpp")
 
 add_library(BTrack STATIC "${PROJECT_SOURCE_DIR}/libs/BTrack/src/BTrack.cpp" "${PROJECT_SOURCE_DIR}/libs/BTrack/src/OnsetDetectionFunction.cpp")
 target_include_directories(BTrack PUBLIC "${PROJECT_SOURCE_DIR}/libs/BTrack/src" ${LIBSAMPLERATE_INCLUDE_DIR})
