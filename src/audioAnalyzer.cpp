@@ -7,6 +7,8 @@
 #include <fftwpp/fftw++.h>
 #pragma clang diagnostic pop
 
+#include "math.hpp"
+
 // https://dlbeer.co.nz/articles/fftvis.html
 // https://stackoverflow.com/a/20584591
 
@@ -18,18 +20,6 @@ audioAnalyzer::audioAnalyzer()
 
 audioAnalyzer::~audioAnalyzer()
 {
-}
-
-template<typename T>
-inline T lerp(T a, T b, T alpha)
-{
-  return alpha * a + ((1 - alpha) * b);
-}
-
-template<typename T>
-inline T clamp(T a, T minV, T maxV)
-{
-  return std::min(std::max(minV, a), maxV);
 }
 
 inline float calculateGamma(float currentFrequency, float maxFrequency, float gamma)

@@ -170,14 +170,4 @@ static inline const fftSpectrumData::const_iterator rangedEnd(const fftSpectrumD
   return array.cbegin() + getEndIndex(range);
 }
 
-static inline const std::reverse_iterator<fftSpectrumData::const_iterator> rrangedBegin(const fftSpectrumData& array, spectrumRange range)
-{
-  return array.crbegin() + getStartIndex(range);
-}
-
-static inline const std::reverse_iterator<fftSpectrumData::const_iterator> rrangedEnd(const fftSpectrumData& array, spectrumRange range)
-{
-  return array.crbegin() + getEndIndex(range);
-}
-
 #endif

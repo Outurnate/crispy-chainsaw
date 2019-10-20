@@ -4,6 +4,7 @@
 #include <bgfx/bgfx.h>
 #include <glm/vec2.hpp>
 #include <math.h>
+#include <limits>
 
 struct positionColorVertex
 {
@@ -79,5 +80,28 @@ void deleteHandle(T obj)
   if (bgfx::isValid(obj))
     bgfx::destroy(obj);
 }
+
+class fastRNG
+{
+public:
+  float operator()()
+  {
+    unsigned long t;
+    x ^= x << 16;
+    x ^= x >> 5;
+    x ^= x << 1;
+
+    t = x;
+    x = y;
+    y = z;
+    z = t ^ x ^ y;
+
+    return float(z) / float(std::numeric_limits<unsigned long>::max());
+  }
+private:
+  unsigned long x = 123456789, y = 362436069, z = 521288629;
+};
+
+static fastRNG rng;
 
 #endif

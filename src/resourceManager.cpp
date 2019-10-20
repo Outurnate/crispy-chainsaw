@@ -8,6 +8,8 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
+#include <iostream>
+
 const std::string shaderTemplatePath = "assets/shaders/%3%/%2%_%1%.bin";
 const std::string textureTemplatePath = "assets/textures/%1%.ktx";
 
