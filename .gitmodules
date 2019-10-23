@@ -1,24 +1,6 @@
 [submodule "libs/fftwpp"]
 	path = libs/fftwpp
 	url = https://github.com/dealias/fftwpp.git
-[submodule "libs/imgui"]
-	path = libs/imgui
-	url = https://github.com/ocornut/imgui.git
-[submodule "libs/imgui-plot"]
-	path = libs/imgui-plot
-	url = https://github.com/soulthreads/imgui-plot.git
 [submodule "libs/AudioFile"]
 	path = libs/AudioFile
 	url = https://github.com/adamstark/AudioFile.git
-[submodule "libs/glm"]
-	path = libs/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "libs/glad"]
-	path = libs/glad
-	url = https://github.com/Dav1dde/glad.git
-[submodule "libs/bigg"]
-	path = libs/bigg
-	url = https://github.com/JoshuaBrookover/bigg.git
-[submodule "libs/BTrack"]
-	path = libs/BTrack
-	url = https://github.com/adamstark/BTrack.git

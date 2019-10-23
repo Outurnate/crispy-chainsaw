@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.1)
 
 project(Audio)
 
-set(OpenGL_GL_Preference "GLVND")
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -11,10 +13,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 find_package(Threads REQUIRED)
-find_package(PkgConfig REQUIRED)
-find_package(Portaudio REQUIRED)
-find_package(FFTW REQUIRED)
-find_package(LibSamplerate REQUIRED)
 
 add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bigg" EXCLUDE_FROM_ALL)
 
@@ -42,6 +40,6 @@ target_include_directories(imgui-plot PUBLIC "${PROJECT_SOURCE_DIR}/libs/imgui-p
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_BINARY_DIR}/include" "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs" "${PROJECT_SOURCE_DIR}/libs/imgui" "${PROJECT_SOURCE_DIR}/libs/imgui-plot/include" ${GLFW_INCLUDE_DIRS})
-target_link_libraries(Audio ${CMAKE_DL_LIBS} AudioFile BTrack fftwpp imgui imgui-plot glfw glm Threads::Threads bigg ${PORTAUDIO_LIBRARIES} ${FFTW_LIBRARIES} ${LIBSAMPLERATE_LIBRARY})
+target_link_libraries(Audio ${CMAKE_DL_LIBS} AudioFile BTrack fftwpp imgui imgui-plot ${PORTAUDIO_LIBRARIES} ${FFTW_LIBRARIES} ${LIBSAMPLERATE_LIBRARY})
 
 file(COPY "${PROJECT_SOURCE_DIR}/assets" DESTINATION "${PROJECT_BINARY_DIR}")
