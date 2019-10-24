@@ -90,9 +90,8 @@ typedef std::array<std::array<double, audioSystem::WINDOW_SIZE>, audioSystem::CH
 struct audioAnalyzedFrame
 {
   fftSpectrumData spectrum;
-  double tempo;
 
-  audioAnalyzedFrame() : spectrum(), tempo(0.0f) {}
+  audioAnalyzedFrame() : spectrum() {}
 };
 
 static inline constexpr size_t getStartIndex(spectrumRange range)

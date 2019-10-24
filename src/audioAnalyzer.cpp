@@ -13,7 +13,6 @@
 // https://stackoverflow.com/a/20584591
 
 audioAnalyzer::audioAnalyzer()
-  : beatTracker(audioSystem::WINDOW_SIZE / 2, audioSystem::WINDOW_SIZE)
 {
   fftwpp::fftw::maxthreads = get_max_threads();
 }
@@ -67,13 +66,7 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     audioPoints[i].balance = clamp(audioSystem::CHANNELS == 2 ? (analyzedSample[0][i] - analyzedSample[1][i]) : 0.0f, -2.0f, 2.0f);
   }
 
-  {
-    audioSourceFrame temp = sample; //TODO modify BTrack so this isn't needed
-    beatTracker.processAudioFrame(temp[0].data());
-  }
-
   currentFrame.spectrum = audioPoints;
-  currentFrame.tempo = beatTracker.getCurrentTempoEstimate();
 }
 
 const audioAnalyzedFrame& audioAnalyzer::getData() const

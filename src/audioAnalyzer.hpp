@@ -2,7 +2,6 @@
 #define AUDIOANALYZER_HPP
 
 #include "audioSystem.hpp"
-#include <BTrack.h>
 
 class audioAnalyzer
 {
@@ -23,7 +22,6 @@ public:
   void setParams(const params& newParams);
 private:
   audioAnalyzedFrame currentFrame;
-  BTrack beatTracker;
   params currentParams;
 };
 

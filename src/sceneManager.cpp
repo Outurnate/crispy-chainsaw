@@ -1,7 +1,6 @@
 #include "sceneManager.hpp"
 
 #include <imgui.h>
-#include <imgui_plot.h>
 
 using namespace std::placeholders;
 
@@ -19,7 +18,8 @@ sceneManager::abstractSceneFactory::~abstractSceneFactory() {}
 
 inline void plotValues(const float* data, int count, float min, float max)
 {
-  ImGui::PlotConfig conf;
+  ImGui::PlotLines("no label", data, count, 0, "overlay", min, max, ImVec2(40, 40));
+/*  ImGui::PlotConfig conf;
   conf.values.ys = data;
   conf.values.count = count;
   conf.scale.min = min;
@@ -30,7 +30,7 @@ inline void plotValues(const float* data, int count, float min, float max)
   conf.grid_y.show = true;
   conf.frame_size = ImVec2(50 * 7, 75);
   conf.line_thickness = 2.f;
-  ImGui::Plot("plot", conf);
+  ImGui::Plot("plot", conf);*/
 }
 
 void sceneManager::update(double delta, float width, float height)
@@ -57,7 +57,7 @@ void sceneManager::update(double delta, float width, float height)
       data[i] = lastFrame.spectrum.at(i).balance;
     plotValues(data.data(), audioSystem::FFT_BINS, -2.0f, 2.0f);
 
-    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
+//    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
 
     audioAnalyzer::params params = engine.getParams();
     ImGui::SliderFloat("Alpha", &params.alpha, 0.0f, 1.0f);

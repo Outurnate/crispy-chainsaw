@@ -1,8 +1,8 @@
 #include "gfxUtils.hpp"
 
-bgfx::VertexDecl positionColorVertex::msLayout;
-bgfx::VertexDecl positionTextureVertex::msLayout;
-bgfx::VertexDecl positionColorTextureVertex::msLayout;
+bgfx::VertexLayout positionColorVertex::msLayout;
+bgfx::VertexLayout positionTextureVertex::msLayout;
+bgfx::VertexLayout positionColorTextureVertex::msLayout;
 
 void init()
 {

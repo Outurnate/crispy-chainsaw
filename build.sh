@@ -1,8 +1,6 @@
 #!/bin/bash
 git submodule update --init --recursive --progress
 mkdir -p build
-pushd build
-conan install --build missing ..
-popd
-cmake -H. -Bbuild -GNinja
+sudo vcpkg install glfw3 glm imgui libsamplerate boost-core boost-circular-buffer boost-lockfree
+cmake -DCMAKE_TOOLCHAIN_FILE=/usr/share/vcpkg/scripts/buildsystems/vcpkg.cmake -H. -Bbuild -GNinja
 cmake --build build

@@ -22,7 +22,7 @@ struct positionColorVertex
       .end();
   };
 
-  static bgfx::VertexDecl msLayout;
+  static bgfx::VertexLayout msLayout;
 };
 
 struct positionTextureVertex
@@ -42,7 +42,7 @@ struct positionTextureVertex
       .end();
   }
 
-  static bgfx::VertexDecl msLayout;
+  static bgfx::VertexLayout msLayout;
 };
 
 struct positionColorTextureVertex
@@ -64,7 +64,7 @@ struct positionColorTextureVertex
       .end();
   }
 
-  static bgfx::VertexDecl msLayout;
+  static bgfx::VertexLayout msLayout;
 };
 
 inline glm::vec2 polarToRect(float radius, float theta)
