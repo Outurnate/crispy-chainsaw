@@ -12,12 +12,11 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS)
+find_package(libsoundio CONFIG REQUIRED)
 
 # non-cmake
 find_library(LIBSAMPLERATE_LIBRARY NAMES libsamplerate-0)
 find_path(LIBSAMPLERATE_INCLUDE_DIR samplerate.h)
-
-add_subdirectory("${PROJECT_SOURCE_DIR}/libs/bgfx")
 
 set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
                "${PROJECT_SOURCE_DIR}/src/gfxUtils.cpp"
