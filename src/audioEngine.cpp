@@ -9,7 +9,7 @@
 audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback) :
     pos(0), analysisThread(&audioEngine::analysis, this), analyzedFrameCallback(analyzedFrameCallback)
 {
-  portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
+/*  portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
 
   portaudio::DirectionSpecificStreamParameters outParams(device,
       audioSystem::CHANNELS, portaudio::FLOAT32, false, device.defaultLowOutputLatency(),
@@ -25,7 +25,7 @@ audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzed
           &audioEngine::getSample));
 
   this->loadFile(std::string("/home/joseph/eclipse/audio_bak/Debug/test.wav"));
-  this->start();
+  this->start();*/
 }
 
 audioEngine::~audioEngine()
@@ -42,19 +42,19 @@ void audioEngine::loadFile(const std::string &fileURI)
 
 void audioEngine::start()
 {
-  stream->start();
+//  stream->start();
 }
 void audioEngine::stop()
 {
-  stream->stop();
+//  stream->stop();
 }
 
 const bool audioEngine::isPlaying() const
 {
-  return !stream->isStopped();
+//  return !stream->isStopped();
 }
 
-int audioEngine::getSample(const void *inputBuffer, void *outputBuffer,
+/*int audioEngine::getSample(const void *inputBuffer, void *outputBuffer,
     unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
@@ -78,7 +78,7 @@ int audioEngine::getSample(const void *inputBuffer, void *outputBuffer,
   pos += framesPerBuffer;
 
   return paContinue;
-}
+}*/
 
 void audioEngine::analysis()
 {

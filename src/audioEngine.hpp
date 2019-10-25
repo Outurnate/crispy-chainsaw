@@ -6,12 +6,11 @@
 #include <array>
 #include <functional>
 #include <boost/lockfree/spsc_queue.hpp>
-#include <portaudiocpp/PortAudioCpp.hxx>
 #include <AudioFile.h>
 
 #include "audioAnalyzer.hpp"
 
-class audioEngine : private portaudio::AutoSystem
+class audioEngine
 {
 public:
   typedef audioAnalyzer analyzer;
@@ -28,13 +27,13 @@ public:
 private:
   static constexpr unsigned FRAMES_PER_BUFFER = 64;
 
-  int getSample(const void *inputBuffer, void *outputBuffer,
+/*  int getSample(const void *inputBuffer, void *outputBuffer,
       unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
-      PaStreamCallbackFlags statusFlags);
+      PaStreamCallbackFlags statusFlags);*/
   void analysis();
 
   AudioFile<double> file;
-  std::unique_ptr<portaudio::MemFunCallbackStream<audioEngine> > stream;
+//  std::unique_ptr<portaudio::MemFunCallbackStream<audioEngine> > stream;
 
   unsigned long pos;
   std::thread analysisThread;
