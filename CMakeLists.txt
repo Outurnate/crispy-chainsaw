@@ -17,6 +17,7 @@ find_package(imgui CONFIG REQUIRED)
 find_package(FFTW3 CONFIG REQUIRED)
 find_package(Boost REQUIRED COMPONENTS)
 find_package(libsoundio CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
 
 find_package(OpenGL REQUIRED)
 
@@ -60,8 +61,10 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
                "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp"
                "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp"
                "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp"
-               "${PROJECT_SOURCE_DIR}/src/warpScene.cpp")
+               "${PROJECT_SOURCE_DIR}/src/warpScene.cpp"
+               "${PROJECT_SOURCE_DIR}/src/soundIO.cpp"
+               "${PROJECT_SOURCE_DIR}/src/audioOutput.cpp")
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs/bigg/include" "${PROJECT_SOURCE_DIR}/libs" ${LIBSAMPLERATE_INCLUDE_DIR} ${BGFX_INCLUDE_DIR} ${BX_INCLUDE_DIR} ${BIMG_INCLUDE_DIR})
-target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} glfw ${BIMG_LIBRARY} ${BGFX_LIBRARY} ${BX_LIBRARY} AudioFile fftwpp glfw glm fftw3 imgui::imgui bigg glfw ${OPENGL_LIBRARIES})
+target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} glfw ${BIMG_LIBRARY} ${BGFX_LIBRARY} ${BX_LIBRARY} AudioFile fftwpp glfw glm fftw3 imgui::imgui bigg glfw ${OPENGL_LIBRARIES} libsoundio::libsoundio meta concepts range-v3)

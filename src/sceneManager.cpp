@@ -35,6 +35,8 @@ inline void plotValues(const float* data, int count, float min, float max)
 
 void sceneManager::update(double delta, float width, float height)
 {
+  std::lock_guard lock(frameAudioMutex);
+
   if (currentScene)
     currentScene->update(delta, width, height);
 
@@ -85,6 +87,8 @@ void sceneManager::setScene(const size_t& index)
 
 void sceneManager::updateAudio(const audioAnalyzedFrame& frame)
 {
+  std::lock_guard lock(frameAudioMutex);
+
   if (currentScene)
     currentScene->updateAudio(frame);
 

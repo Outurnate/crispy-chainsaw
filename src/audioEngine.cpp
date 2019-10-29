@@ -95,7 +95,10 @@ void audioEngine::analysis()
       {
         float data;
         while (!analysisQueue[channel].pop(data))
+        {
+          // TODO std::this_thread::yield
           nanosleep(&time, NULL);
+        }
         window[channel].push(data);
       }
 

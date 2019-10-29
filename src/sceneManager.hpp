@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <map>
+#include <mutex>
 
 #include "audioSystem.hpp"
 #include "audioEngine.hpp"
@@ -63,6 +64,7 @@ private:
   std::vector<std::unique_ptr<abstractSceneFactory> > scenes;
   std::vector<std::string> sceneNames;
   std::unique_ptr<scene> currentScene;
+  std::mutex frameAudioMutex;
   int currentItem;
   audioEngine engine;
   audioAnalyzedFrame lastFrame;
