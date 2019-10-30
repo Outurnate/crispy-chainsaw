@@ -34,6 +34,11 @@ soundio::system::~system()
   soundio_destroy(obj);
 }
 
+void soundio::system::waitEvents()
+{
+  soundio_wait_events(obj);
+}
+
 soundio::outputDevice::outputDevice(soundio::system& system)
 {
   int defaultIndex = soundio_default_output_device_index(system.obj);
@@ -93,21 +98,32 @@ const std::string soundio::outStream::getName() const
   return name;
 }
 
-void soundio::outStream::beginWrite(int& frameCount)
+void soundio::outStream::beginWrite(int& requestedFrameCount)
 {
-  areas.resize(obj->layout.channel_count);
+  SoundIoChannelArea* areasRaw;
 
-  if (int err = soundio_outstream_begin_write(obj, areas.data(), &frameCount); err)
+  if (int err = soundio_outstream_begin_write(obj, &areasRaw, &requestedFrameCount); err)
     throw soundioException(err);
-}
 
-ranges::v3::span<char> soundio::outStream::channel(int index)
-{
-  return ranges::v3::span<char>(areas[index]->ptr, areas[index]->step / sizeof(char));
+  areas = ranges::v3::span<SoundIoChannelArea>(areasRaw, obj->layout.channel_count);
+
+  this->frameCount = requestedFrameCount;
 }
 
 void soundio::outStream::endWrite()
 {
   if (int err = soundio_outstream_end_write(obj); err)
+    throw soundioException(err);
+}
+
+void soundio::outStream::start()
+{
+  if (int err = soundio_outstream_start(obj); err)
+    throw soundioException(err);
+}
+
+void soundio::outStream::clearBuffer()
+{
+  if (int err = soundio_outstream_clear_buffer(obj); err)
     throw soundioException(err);
 }

@@ -6,79 +6,34 @@
 #include <numeric>
 #include <time.h>
 
-audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback) :
-    pos(0), analysisThread(&audioEngine::analysis, this), analyzedFrameCallback(analyzedFrameCallback)
+using namespace std::placeholders;
+
+audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback)
+  : output(soundSystem, std::bind(&audioEngine::providerCallback, this, _1)),
+    pos(0),
+    playbackThread(&audioEngine::playback, this),
+    analysisThread(&audioEngine::analysis, this),
+    analyzedFrameCallback(analyzedFrameCallback)
 {
-/*  portaudio::Device &device(portaudio::System::instance().defaultOutputDevice());
-
-  portaudio::DirectionSpecificStreamParameters outParams(device,
-      audioSystem::CHANNELS, portaudio::FLOAT32, false, device.defaultLowOutputLatency(),
-      NULL);
-  portaudio::StreamParameters params(
-      portaudio::DirectionSpecificStreamParameters::null(), outParams,
-      audioSystem::SAMPLE_RATE,
-      FRAMES_PER_BUFFER,
-      paClipOff);
-
-  stream.reset(
-      new portaudio::MemFunCallbackStream<audioEngine>(params, *this,
-          &audioEngine::getSample));
-
-  this->loadFile(std::string("/home/joseph/eclipse/audio_bak/Debug/test.wav"));
-  this->start();*/
 }
 
 audioEngine::~audioEngine()
 {
 }
 
-void audioEngine::loadFile(const std::string &fileURI)
+audioProviderFrame audioEngine::providerCallback(int frames)
 {
-  // TODO none of this is threadsafe...at all.....
-  // we have to stop the stream
-  // maybe resample the audio
-  file.load(fileURI);
-}
+  audioProviderFrame audioFrame = provider.provide(frames);
 
-void audioEngine::start()
-{
-//  stream->start();
-}
-void audioEngine::stop()
-{
-//  stream->stop();
-}
-
-const bool audioEngine::isPlaying() const
-{
-//  return !stream->isStopped();
-}
-
-/*int audioEngine::getSample(const void *inputBuffer, void *outputBuffer,
-    unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
-    PaStreamCallbackFlags statusFlags)
-{
-  assert(outputBuffer != NULL);
-  assert(framesPerBuffer == FRAMES_PER_BUFFER);
-
-  if ((pos + framesPerBuffer) > file.getNumSamplesPerChannel())
-    return paComplete;
-
-  float **out = static_cast<float**>(outputBuffer);
-  for (unsigned i = 0; i < framesPerBuffer; ++i)
+  for (unsigned i = 0; i < frames; ++i)
     for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
-    {
-      out[channel][i] = file.samples[channel % file.getNumChannels()][pos + i]; // if file has less channels, limit to CHANNELS, if CHANNELS is more than file channels, copy channel
-      if (!analysisQueue[channel].push(out[channel][i]))
+      if (!analysisQueue[channel].push(audioFrame[channel][i]))
       {
         // i dunno...drop the rest of the frame i guess
       }
-    }
 
-  pos += framesPerBuffer;
-
-  return paContinue;
-}*/
+  return audioFrame;
+}
 
 void audioEngine::analysis()
 {
@@ -119,6 +74,12 @@ void audioEngine::analysis()
     analysisEngine.analyze(sourceSample);
     analyzedFrameCallback(analysisEngine.getData());
   }
+}
+
+void audioEngine::playback()
+{
+  while (2 > 1)
+    soundSystem.waitEvents();
 }
 
 const audioAnalyzer::params& audioEngine::getParams() const

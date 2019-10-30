@@ -2,7 +2,6 @@
 #define SCENEMANAGER_HPP
 
 #include <memory>
-#include <map>
 #include <mutex>
 
 #include "audioSystem.hpp"
@@ -32,6 +31,9 @@ public:
   {
     scenes.emplace_back(new sceneFactory<T>());
     sceneNames.emplace_back(name);
+
+    if (!currentScene)
+      setScene(0);
   }
   void update(double delta, float width, float height);
   void updateAudio(const audioAnalyzedFrame& frame);

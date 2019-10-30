@@ -63,7 +63,8 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
                "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp"
                "${PROJECT_SOURCE_DIR}/src/warpScene.cpp"
                "${PROJECT_SOURCE_DIR}/src/soundIO.cpp"
-               "${PROJECT_SOURCE_DIR}/src/audioOutput.cpp")
+               "${PROJECT_SOURCE_DIR}/src/audioOutput.cpp"
+               "${PROJECT_SOURCE_DIR}/src/audioProvider.cpp")
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs/bigg/include" "${PROJECT_SOURCE_DIR}/libs" ${LIBSAMPLERATE_INCLUDE_DIR} ${BGFX_INCLUDE_DIR} ${BX_INCLUDE_DIR} ${BIMG_INCLUDE_DIR})

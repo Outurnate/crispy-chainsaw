@@ -4,8 +4,8 @@
 #include <soundio.h>
 #include <string>
 #include <functional>
-#include <vector>
 #include <range/v3/span.hpp>
+#include <range/v3/view/stride.hpp>
 
 namespace soundio
 {
@@ -32,6 +32,8 @@ namespace soundio
 
     system(system&&) = default;
     system& operator=(system&&) = default;
+
+    void waitEvents();
   private:
     SoundIo* obj;
   };
@@ -72,11 +74,23 @@ namespace soundio
 
     const int getChannels() const;
     const std::string getName() const;
-    void beginWrite(int& frameCount);
-    ranges::v3::span<char> channel(int index);
+    void beginWrite(int& requestedFrameCount);
     void endWrite();
+    void start();
+    void clearBuffer();
+
+    // when concepts are a thing, use the range cop
+    template<typename T>
+    auto channel(int index)
+    {
+      assert((areas[index].step % sizeof(T)) == 0);
+      size_t strideT = areas[index].step / sizeof(T);
+      return ranges::v3::span<T>(reinterpret_cast<T*>(areas[index].ptr), frameCount * strideT)
+          | ranges::views::stride(strideT);
+    }
   private:
-    std::vector<SoundIoChannelArea*> areas;
+    ranges::v3::span<SoundIoChannelArea> areas;
+    int frameCount;
     std::string name;
     callback writeCallback;
     SoundIoOutStream* obj;

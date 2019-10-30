@@ -1,7 +1,6 @@
 #include <bigg.hpp>
 #include <bx/allocator.h>
-
-#include <memory>
+#include <optional>
 
 #include "sceneManager.hpp"
 #include "circleSpectrumScene.hpp"
@@ -11,8 +10,9 @@ class audioVisualizationWindow : public bigg::Application
 {
 public:
   audioVisualizationWindow()
-    : bigg::Application("death by cold fries"), scene(new sceneManager(this->mAllocator))
+    : bigg::Application("death by cold fries"), scene()
   {
+    scene.emplace(this->mAllocator);
   }
 
   void initialize(int argc, char** argv) override
@@ -36,13 +36,13 @@ public:
 
   int shutdown() override
   {
-    scene.reset(nullptr);
+    scene.reset();
 
     return 0;
   }
 
 private:
-  std::unique_ptr<sceneManager> scene;
+  std::optional<sceneManager> scene;
 };
 
 int main(int argc, char** argv)

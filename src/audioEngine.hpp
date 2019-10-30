@@ -6,9 +6,11 @@
 #include <array>
 #include <functional>
 #include <boost/lockfree/spsc_queue.hpp>
-#include <AudioFile.h>
 
 #include "audioAnalyzer.hpp"
+#include "audioProvider.hpp"
+#include "audioOutput.hpp"
+#include "soundIO.hpp"
 
 class audioEngine
 {
@@ -18,25 +20,21 @@ public:
   audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback);
   virtual ~audioEngine();
 
-  void loadFile(const std::string &fileURI);
-  void start();
-  void stop();
-  const bool isPlaying() const;
   const audioAnalyzer::params& getParams() const;
   void setParams(const audioAnalyzer::params& newParams);
 private:
   static constexpr unsigned FRAMES_PER_BUFFER = 64;
 
-/*  int getSample(const void *inputBuffer, void *outputBuffer,
-      unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo *timeInfo,
-      PaStreamCallbackFlags statusFlags);*/
   void analysis();
+  void playback();
+  audioProviderFrame providerCallback(int frames);
 
-  AudioFile<double> file;
-//  std::unique_ptr<portaudio::MemFunCallbackStream<audioEngine> > stream;
-
-  unsigned long pos;
+  soundio::system soundSystem;
+  audioProvider provider;
+  audioOutput output;
+  std::thread playbackThread;
   std::thread analysisThread;
+  unsigned long pos;
   std::array<
       boost::lockfree::spsc_queue<float,
           boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, audioSystem::CHANNELS> analysisQueue; // 32 is completely arbitrary
