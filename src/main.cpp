@@ -1,6 +1,8 @@
 #include <bigg.hpp>
 #include <bx/allocator.h>
 #include <optional>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 #include "sceneManager.hpp"
 #include "circleSpectrumScene.hpp"
@@ -47,6 +49,8 @@ private:
 
 int main(int argc, char** argv)
 {
+  auto console = spdlog::stdout_color_mt("console");
+  spdlog::set_default_logger(console);
   audioVisualizationWindow app;
   return app.run(argc, argv, bgfx::RendererType::OpenGL, BGFX_PCI_ID_NONE, 0, NULL, new bx::DefaultAllocator());
 }

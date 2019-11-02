@@ -2,6 +2,8 @@
 
 #include <new>
 
+#define SOUNDIO_WRAP(X) if(int err=X;err)throw soundioException(err);
+
 soundio::soundioException::soundioException(int err)
   : err(err)
 {
@@ -23,8 +25,7 @@ soundio::system::system()
   if (!obj)
     throw std::bad_alloc();
 
-  if (int err = soundio_connect(obj); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_connect(obj))
 
   soundio_flush_events(obj);
 }
@@ -37,6 +38,11 @@ soundio::system::~system()
 void soundio::system::waitEvents()
 {
   soundio_wait_events(obj);
+}
+
+void soundio::system::wakeUp()
+{
+  soundio_wakeup(obj);
 }
 
 soundio::outputDevice::outputDevice(soundio::system& system)
@@ -77,8 +83,7 @@ soundio::outStream::outStream(outputDevice& device, const std::string& name, cal
         stream.writeCallback(stream, frameCountMin, frameCountMax);
       };
 
-  if (int err = soundio_outstream_open(obj); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_outstream_open(obj))
 
   this->name = std::string(obj->name);
 }
@@ -102,8 +107,7 @@ void soundio::outStream::beginWrite(int& requestedFrameCount)
 {
   SoundIoChannelArea* areasRaw;
 
-  if (int err = soundio_outstream_begin_write(obj, &areasRaw, &requestedFrameCount); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_outstream_begin_write(obj, &areasRaw, &requestedFrameCount))
 
   areas = ranges::v3::span<SoundIoChannelArea>(areasRaw, obj->layout.channel_count);
 
@@ -112,18 +116,22 @@ void soundio::outStream::beginWrite(int& requestedFrameCount)
 
 void soundio::outStream::endWrite()
 {
-  if (int err = soundio_outstream_end_write(obj); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_outstream_end_write(obj))
 }
 
 void soundio::outStream::start()
 {
-  if (int err = soundio_outstream_start(obj); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_outstream_start(obj))
 }
 
 void soundio::outStream::clearBuffer()
 {
-  if (int err = soundio_outstream_clear_buffer(obj); err)
-    throw soundioException(err);
+  SOUNDIO_WRAP(soundio_outstream_clear_buffer(obj))
+}
+
+std::chrono::duration<double> soundio::outStream::getLatency()
+{
+  double latency;
+  SOUNDIO_WRAP(soundio_outstream_get_latency(obj, &latency));
+  return std::chrono::duration<double>(latency);
 }

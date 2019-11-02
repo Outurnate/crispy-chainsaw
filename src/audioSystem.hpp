@@ -4,6 +4,9 @@
 #include <array>
 #include <range/v3/span.hpp>
 
+#define CHANNEL_LEFT  0
+#define CHANNEL_RIGHT 1
+
 // 20-60 Hz sub bass
 // 60-250 Hz bass
 // 250-500 Hz low midrange
@@ -44,6 +47,13 @@ struct audioPoint
   audioPoint(float magnitude, float balance) : magnitude(magnitude), balance(balance) {}
 };
 
+template<typename T>
+struct stereoPair
+{
+  T left;
+  T right;
+};
+
 template<unsigned FFT_BINS, unsigned SAMPLE_RATE>
 struct binLabels
 {
@@ -68,7 +78,7 @@ constexpr size_t getIndex(const binLabels<FFT_BINS, SAMPLE_RATE> labels, double 
 class audioSystem
 {
 public:
-  static constexpr unsigned CHANNELS = 2;
+  //static constexpr unsigned CHANNELS = 2;
   static constexpr unsigned SAMPLE_RATE = 44100;
   static constexpr unsigned MINIMUM_FREQUENCY = 20;
   static constexpr unsigned WINDOW_SIZE = SAMPLE_RATE / MINIMUM_FREQUENCY;
@@ -86,8 +96,9 @@ public:
 };
 
 typedef std::array<audioPoint, audioSystem::FFT_BINS> fftSpectrumData;
-typedef std::array<std::array<double, audioSystem::WINDOW_SIZE>, audioSystem::CHANNELS> audioSourceFrame;
-typedef std::array<ranges::v3::span<float>, audioSystem::CHANNELS> audioProviderFrame;
+typedef stereoPair<std::array<float, audioSystem::WINDOW_SIZE> > audioSourceFrame;
+typedef stereoPair<ranges::v3::span<float> > audioProviderFrame;
+typedef stereoPair<float> stereoSample;
 
 struct audioAnalyzedFrame
 {

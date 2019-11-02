@@ -11,8 +11,8 @@ audioProvider::~audioProvider() {}
 audioProviderFrame audioProvider::provide(int frames)
 {
   audioProviderFrame result;
-  for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
-    result[channel] = ranges::v3::span<float>(&file.samples[channel][position], frames);
+  result.left  = ranges::v3::span<float>(&file.samples[CHANNEL_LEFT ][position], frames);
+  result.right = ranges::v3::span<float>(&file.samples[CHANNEL_RIGHT][position], frames);
   position += frames;
   return result;
 }

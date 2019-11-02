@@ -26,44 +26,48 @@ inline float calculateGamma(float currentFrequency, float maxFrequency, float ga
   return pow((currentFrequency / maxFrequency), (1 / gamma));
 }
 
+std::array<float, audioSystem::FFT_BINS> audioAnalyzer::analyzeChannel(const std::array<float, audioSystem::WINDOW_SIZE>& channelData)
+{
+  std::array<float, audioSystem::FFT_BINS> result;
+
+  size_t alignment = sizeof(Complex);
+  Array::array1<double> windowedSample(audioSystem::WINDOW_SIZE, alignment);
+
+  for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
+  {
+    // apply window function to all samples to reduce spectral leakage
+    double w = 0.5 * (1 - cos(2 * M_PI * i / (audioSystem::WINDOW_SIZE - 1)));
+    windowedSample[i] = w * channelData[i];
+  }
+
+  Array::array1<Complex> transformedSample(audioSystem::FFT_BINS, alignment);
+  fftwpp::rcfft1d forward(audioSystem::WINDOW_SIZE, windowedSample, transformedSample);
+  forward.fft(windowedSample, transformedSample);
+
+  for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
+  {
+    float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
+    float currentFrequency = audioSystem::labels.labels[i];
+    float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, currentParams.gamma);
+    result[i] = clamp(currentParams.scale * gammaCoefficient * lerp(currentFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f); // TODO alpha calc bleeds between channels
+  }
+
+  return result;
+}
+
 void audioAnalyzer::analyze(const audioSourceFrame& sample)
 {
-  std::array<std::array<float, audioSystem::FFT_BINS>, audioSystem::CHANNELS> analyzedSample;
-
-  // analyze a sample
-  for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
+  stereoPair<std::array<float, audioSystem::FFT_BINS> > analyzedSamples
   {
-    size_t alignment = sizeof(Complex);
-    Array::array1<double> windowedSample(audioSystem::WINDOW_SIZE, alignment);
-
-    for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
-    {
-      // apply window function to all samples to reduce spectral leakage
-      double w = 0.5 * (1 - cos(2 * M_PI * i / (audioSystem::WINDOW_SIZE - 1)));
-      windowedSample[i] = w * sample[channel][i];
-    }
-
-    Array::array1<Complex> transformedSample(audioSystem::FFT_BINS, alignment);
-    fftwpp::rcfft1d forward(audioSystem::WINDOW_SIZE, windowedSample, transformedSample);
-    forward.fft(windowedSample, transformedSample);
-
-    for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-    {
-      float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
-      float currentFrequency = audioSystem::labels.labels[i];
-      float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, currentParams.gamma);
-      analyzedSample[channel][i] = clamp(currentParams.scale * gammaCoefficient * lerp(currentFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f); // TODO alpha calc bleeds between channels
-    }
-  }
+    .left  = analyzeChannel(sample.left),
+    .right = analyzeChannel(sample.right),
+  };
 
   fftSpectrumData audioPoints;
   for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
   {
-    float sum = 0.0f;
-    for (unsigned channel = 0; channel < audioSystem::CHANNELS; ++channel)
-      sum += analyzedSample[channel][i];
-    audioPoints[i].magnitude = sum / audioSystem::CHANNELS;
-    audioPoints[i].balance = clamp(audioSystem::CHANNELS == 2 ? (analyzedSample[0][i] - analyzedSample[1][i]) : 0.0f, -2.0f, 2.0f);
+    audioPoints[i].magnitude = (analyzedSamples.left[i] + analyzedSamples.right[i]) / 2;
+    audioPoints[i].balance = clamp(analyzedSamples.left[i] - analyzedSamples.right[i], -2.0f, 2.0f);
   }
 
   currentFrame.spectrum = audioPoints;

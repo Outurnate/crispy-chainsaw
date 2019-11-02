@@ -21,6 +21,7 @@ public:
   const params& getParams() const;
   void setParams(const params& newParams);
 private:
+  std::array<float, audioSystem::FFT_BINS> analyzeChannel(const std::array<float, audioSystem::WINDOW_SIZE>& channelData);
   audioAnalyzedFrame currentFrame;
   params currentParams;
 };

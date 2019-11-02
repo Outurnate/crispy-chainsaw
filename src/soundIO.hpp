@@ -3,6 +3,7 @@
 
 #include <soundio.h>
 #include <string>
+#include <chrono>
 #include <functional>
 #include <range/v3/span.hpp>
 #include <range/v3/view/stride.hpp>
@@ -34,6 +35,7 @@ namespace soundio
     system& operator=(system&&) = default;
 
     void waitEvents();
+    void wakeUp();
   private:
     SoundIo* obj;
   };
@@ -78,6 +80,7 @@ namespace soundio
     void endWrite();
     void start();
     void clearBuffer();
+    std::chrono::duration<double> getLatency(); // seconds
 
     // when concepts are a thing, use the range cop
     template<typename T>

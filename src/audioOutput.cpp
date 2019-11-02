@@ -4,16 +4,21 @@
 
 using namespace std::placeholders;
 
-audioOutput::audioOutput(soundio::system& system, provideAudioCallback providerCallback)
+audioOutput::audioOutput(soundio::system& system, provideAudioCallback providerCallback, playedAudioCallback playedCallback)
   : providerCallback(providerCallback),
+    playedCallback(playedCallback),
     device(system),
     stream(device, "death by cold fries", std::bind(&audioOutput::writeCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, audioSystem::SAMPLE_RATE)
 {
-  stream.start();
 }
 
 audioOutput::~audioOutput()
 {
+}
+
+void audioOutput::start()
+{
+  stream.start();
 }
 
 void audioOutput::writeCallback(soundio::outStream& stream, int minFrames, int maxFrames)
@@ -29,14 +34,17 @@ void audioOutput::writeCallback(soundio::outStream& stream, int minFrames, int m
       break;
 
     audioProviderFrame providerFrame = providerCallback(frameCount);
-    for (int channel = 0; channel < stream.getChannels(); ++channel)
-    {
-      auto channelSpan = stream.channel<float>(channel);
-      assert(channelSpan.size() == providerFrame[channel].size());
-      ranges::v3::copy(providerFrame[channel], channelSpan.begin());
-    }
+    auto leftStreamFrame = stream.channel<float>(CHANNEL_LEFT);
+    auto rightStreamFrame = stream.channel<float>(CHANNEL_RIGHT);
+
+    assert(providerFrame.left.size()  == leftStreamFrame.size());
+    assert(providerFrame.right.size() == rightStreamFrame.size());
+
+    ranges::v3::copy(providerFrame.left,  leftStreamFrame.begin());
+    ranges::v3::copy(providerFrame.right, rightStreamFrame.begin());
 
     stream.endWrite();
+    playedCallback(providerFrame, stream.getLatency());
 
     framesLeft -= frameCount;
   }

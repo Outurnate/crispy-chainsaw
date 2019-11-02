@@ -5,6 +5,8 @@
 #include <thread>
 #include <array>
 #include <functional>
+#include <list>
+#include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include "audioAnalyzer.hpp"
@@ -15,30 +17,27 @@
 class audioEngine
 {
 public:
-  typedef audioAnalyzer analyzer;
-
   audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback);
   virtual ~audioEngine();
 
   const audioAnalyzer::params& getParams() const;
   void setParams(const audioAnalyzer::params& newParams);
 private:
-  static constexpr unsigned FRAMES_PER_BUFFER = 64;
+  typedef std::chrono::steady_clock clock;
 
   void analysis();
   void playback();
-  audioProviderFrame providerCallback(int frames);
+  void audioPlayed(const audioProviderFrame& frame, std::chrono::duration<double> latency);
+  void processDelayedFrames();
 
   soundio::system soundSystem;
+  std::list<std::tuple<std::chrono::duration<double>, stereoPair<std::vector<float> > > > delayedFrames;
   audioProvider provider;
   audioOutput output;
   std::thread playbackThread;
   std::thread analysisThread;
-  unsigned long pos;
-  std::array<
-      boost::lockfree::spsc_queue<float,
-          boost::lockfree::capacity<FRAMES_PER_BUFFER * 32> >, audioSystem::CHANNELS> analysisQueue; // 32 is completely arbitrary
-  analyzer analysisEngine;
+  boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<audioSystem::WINDOW_SIZE * 8> > analysisQueue; // 8 is completely arbitrary
+  audioAnalyzer analysisEngine;
   std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback;
 };
 
