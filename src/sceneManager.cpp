@@ -61,7 +61,7 @@ void sceneManager::update(double delta, float width, float height)
 
 //    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
 
-    audioAnalyzer::params params = engine.getParams();
+    audioEngine::params params = engine.getParams();
     ImGui::SliderFloat("Alpha", &params.alpha, 0.0f, 1.0f);
     ImGui::SliderFloat("Gamma", &params.gamma, 0.0f, 10.0f);
     ImGui::SliderFloat("Scale", &params.scale, 0.0f, 1.0f);

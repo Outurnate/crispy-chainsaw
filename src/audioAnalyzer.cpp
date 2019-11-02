@@ -26,7 +26,14 @@ inline float calculateGamma(float currentFrequency, float maxFrequency, float ga
   return pow((currentFrequency / maxFrequency), (1 / gamma));
 }
 
-std::array<float, audioSystem::FFT_BINS> audioAnalyzer::analyzeChannel(const std::array<float, audioSystem::WINDOW_SIZE>& channelData)
+float adjustFFTResult(Complex bin, float currentFrequency, float previousValue, float alpha, float gamma, float scale, float exponent)
+{
+  float magnitude = sqrt(pow((bin.real()), 2) + pow((bin.imag()), 2));
+  float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, gamma);
+  return clamp(scale * gammaCoefficient * lerp(previousValue / gammaCoefficient, magnitude, alpha), 0.0f, 1.0f); // TODO alpha calc bleeds between channels
+}
+
+std::array<float, audioSystem::FFT_BINS> audioAnalyzer::analyzeChannel(const std::array<float, audioSystem::WINDOW_SIZE>& channelData, const std::array<float, audioSystem::FFT_BINS>& lastFrame, float alpha, float gamma, float scale, float exponent)
 {
   std::array<float, audioSystem::FFT_BINS> result;
 
@@ -45,23 +52,27 @@ std::array<float, audioSystem::FFT_BINS> audioAnalyzer::analyzeChannel(const std
   forward.fft(windowedSample, transformedSample);
 
   for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-  {
-    float d = sqrt(pow((transformedSample[i].real()), 2) + pow((transformedSample[i].imag()), 2));
-    float currentFrequency = audioSystem::labels.labels[i];
-    float gammaCoefficient = calculateGamma(currentFrequency, audioSystem::MAXIMUM_FREQUENCY, currentParams.gamma);
-    result[i] = clamp(currentParams.scale * gammaCoefficient * lerp(currentFrame.spectrum[i].magnitude / gammaCoefficient, d, currentParams.alpha), 0.0f, 1.0f); // TODO alpha calc bleeds between channels
-  }
+    result[i] = adjustFFTResult(
+        transformedSample[i],
+        audioSystem::labels.labels[i],
+        lastFrame[i],
+        alpha,
+        gamma,
+        scale,
+        exponent);
 
   return result;
 }
 
-void audioAnalyzer::analyze(const audioSourceFrame& sample)
+audioAnalyzedFrame audioAnalyzer::analyze(const audioSourceFrame& sample, float alpha, float gamma, float scale, float exponent)
 {
   stereoPair<std::array<float, audioSystem::FFT_BINS> > analyzedSamples
   {
-    .left  = analyzeChannel(sample.left),
-    .right = analyzeChannel(sample.right),
+    .left  = analyzeChannel(sample.left,  lastFrame.left,  alpha, gamma, scale, exponent),
+    .right = analyzeChannel(sample.right, lastFrame.right, alpha, gamma, scale, exponent),
   };
+
+  lastFrame = analyzedSamples;
 
   fftSpectrumData audioPoints;
   for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
@@ -70,20 +81,7 @@ void audioAnalyzer::analyze(const audioSourceFrame& sample)
     audioPoints[i].balance = clamp(analyzedSamples.left[i] - analyzedSamples.right[i], -2.0f, 2.0f);
   }
 
-  currentFrame.spectrum = audioPoints;
-}
-
-const audioAnalyzedFrame& audioAnalyzer::getData() const
-{
-  return currentFrame;
-}
-
-const audioAnalyzer::params& audioAnalyzer::getParams() const
-{
-  return currentParams;
-}
-
-void audioAnalyzer::setParams(const audioAnalyzer::params& newParams)
-{
-  currentParams = newParams;
+  audioAnalyzedFrame frame;
+  frame.spectrum = audioPoints; // TODO does this class need to exist
+  return frame;
 }

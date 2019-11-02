@@ -23,14 +23,14 @@ audioEngine::~audioEngine()
 {
 }
 
-const audioAnalyzer::params& audioEngine::getParams() const
+const audioEngine::params& audioEngine::getParams() const
 {
-  return analysisEngine.getParams();
+  return currentParams;
 }
 
-void audioEngine::setParams(const audioAnalyzer::params& newParams)
+void audioEngine::setParams(const audioEngine::params& newParams)
 {
-  analysisEngine.setParams(newParams);
+  currentParams = newParams;
 }
 
 void audioEngine::playback()
@@ -116,15 +116,12 @@ void audioEngine::analysis()
       ++samplesReadyForAnalysis;
     }
     if (samplesReadyForAnalysis != 0)
-    {
-      analysisEngine.analyze(analysisSamples);
-      analyzedFrameCallback(analysisEngine.getData());
-    }
+      analyzedFrameCallback(analysisEngine.analyze(analysisSamples, currentParams.alpha, currentParams.gamma, currentParams.scale, currentParams.exponent));
     if (samplesReadyForAnalysis > 1)
       spdlog::warn("{} samples read.  Analysis thread is running behind", samplesReadyForAnalysis);
 
     soundSystem.wakeUp();
     //std::this_thread::yield();
-    nanosleep(&time, NULL);
+//    nanosleep(&time, NULL);
   }
 }

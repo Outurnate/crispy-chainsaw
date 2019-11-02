@@ -17,11 +17,19 @@
 class audioEngine
 {
 public:
+  struct params
+  {
+    float alpha = 0.2f;
+    float gamma = 2.0f;
+    float scale = 1.0f / 10.0f;
+    float exponent = 1.0f;
+  };
+
   audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback);
   virtual ~audioEngine();
 
-  const audioAnalyzer::params& getParams() const;
-  void setParams(const audioAnalyzer::params& newParams);
+  const params& getParams() const;
+  void setParams(const params& newParams);
 private:
   typedef std::chrono::steady_clock clock;
 
@@ -39,6 +47,7 @@ private:
   boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<audioSystem::WINDOW_SIZE * 8> > analysisQueue; // 8 is completely arbitrary
   audioAnalyzer analysisEngine;
   std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback;
+  params currentParams;
 };
 
 #endif
