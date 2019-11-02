@@ -1,13 +1,21 @@
 #include "sceneManager.hpp"
 
 #include <imgui.h>
+#include <string_view>
+#include <fmt/format.h>
 
 using namespace std::placeholders;
 
 scene::scene(resourceManager& resources) {}
 scene::~scene() {}
 
-sceneManager::sceneManager(bigg::Allocator& allocator) : scenes(), currentScene(nullptr), engine(std::bind(&sceneManager::updateAudio, this, _1)), currentItem(0), resources(allocator)
+sceneManager::sceneManager(bigg::Allocator& allocator) :
+    scenes(),
+    currentScene(nullptr),
+    engine(std::bind(&sceneManager::updateAudio, this, _1)),
+    currentItem(0),
+    resources(allocator),
+    frameDeltas(256, 0.0f)
 {
 }
 
@@ -16,26 +24,16 @@ sceneManager::~sceneManager() {}
 sceneManager::abstractSceneFactory::abstractSceneFactory() {}
 sceneManager::abstractSceneFactory::~abstractSceneFactory() {}
 
-inline void plotValues(const float* data, int count, float min, float max)
+inline void plotValues(const float* data, const std::string& label, int count, float min, float max)
 {
-  ImGui::PlotLines("no label", data, count, 0, "overlay", min, max, ImVec2(40, 40));
-/*  ImGui::PlotConfig conf;
-  conf.values.ys = data;
-  conf.values.count = count;
-  conf.scale.min = min;
-  conf.scale.max = max;
-  conf.tooltip.show = true;
-  conf.tooltip.format = "x=%.2f, y=%.2f";
-  conf.grid_x.show = false;
-  conf.grid_y.show = true;
-  conf.frame_size = ImVec2(50 * 7, 75);
-  conf.line_thickness = 2.f;
-  ImGui::Plot("plot", conf);*/
+  ImGui::PlotLines(label.c_str(), data, count, 0, NULL, min, max, ImVec2(200, 40));
 }
 
 void sceneManager::update(double delta, float width, float height)
 {
   std::lock_guard lock(frameAudioMutex);
+
+  frameDeltas.push_back(delta);
 
   if (currentScene)
     currentScene->update(delta, width, height);
@@ -53,13 +51,11 @@ void sceneManager::update(double delta, float width, float height)
 
     for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
       data[i] = lastFrame.at(i).magnitude;
-    plotValues(data.data(), audioSystem::FFT_BINS, 0.0f, 1.0f);
+    plotValues(data.data(), "magnitude", audioSystem::FFT_BINS, 0.0f, 1.0f);
 
     for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
       data[i] = lastFrame.at(i).balance;
-    plotValues(data.data(), audioSystem::FFT_BINS, -2.0f, 2.0f);
-
-//    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
+    plotValues(data.data(), "balance",   audioSystem::FFT_BINS, -2.0f, 2.0f);
 
     audioEngine::params params = engine.getParams();
     ImGui::SliderFloat("Alpha",    &params.alpha,    0.0f, 1.0f);
@@ -69,7 +65,7 @@ void sceneManager::update(double delta, float width, float height)
     engine.setParams(params);
   }
 
-  if (ImGui::CollapsingHeader("Configuration"))
+  if (ImGui::CollapsingHeader("Scene Configuration"))
   {
     int previousItem = currentItem;
     struct func { static bool get(void* data, int idx, const char** outStr) { *outStr = (*reinterpret_cast<std::vector<std::string>* >(data))[idx].c_str(); return true; } };
@@ -77,6 +73,15 @@ void sceneManager::update(double delta, float width, float height)
     if (previousItem != currentItem)
       setScene(currentItem);
   }
+
+  ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(MARGIN, MARGIN), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
+  ImGui::SetNextWindowBgAlpha(0.35f);
+  ImGui::Begin("stats", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
+
+  struct func { static float get(void* data, int i) { return (*reinterpret_cast<boost::circular_buffer<float>*>(data))[i] * 1000.0f; } };
+  ImGui::PlotHistogram(fmt::format("{0:#.2} ms per frame, {1} fps", delta * 1000.0f, (1.0f / delta)).c_str(), &func::get, &frameDeltas, 256, 0, NULL, 0.0f, 30.0f, ImVec2(0, 0));
 
   ImGui::End();
 }

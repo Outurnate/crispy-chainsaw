@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <boost/circular_buffer.hpp>
 
 #include "audioSystem.hpp"
 #include "audioEngine.hpp"
@@ -71,6 +72,7 @@ private:
   audioEngine engine;
   fftSpectrumData lastFrame;
   resourceManager resources;
+  boost::circular_buffer<float> frameDeltas;
 };
 
 #endif
