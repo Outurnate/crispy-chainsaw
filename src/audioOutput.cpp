@@ -23,6 +23,7 @@ void audioOutput::start()
 
 void audioOutput::writeCallback(soundio::outStream& stream, int minFrames, int maxFrames)
 {
+  (void)minFrames;
   int framesLeft = maxFrames;
 
   while (framesLeft > 0)

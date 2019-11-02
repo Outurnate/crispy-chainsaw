@@ -93,7 +93,7 @@ soundio::outStream::~outStream()
   soundio_outstream_destroy(obj);
 }
 
-const int soundio::outStream::getChannels() const
+int soundio::outStream::getChannels() const
 {
   return obj->layout.channel_count;
 }

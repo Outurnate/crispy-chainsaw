@@ -74,7 +74,7 @@ namespace soundio
     outStream(outStream&&) = default;
     outStream& operator=(outStream&&) = default;
 
-    const int getChannels() const;
+    int getChannels() const;
     const std::string getName() const;
     void beginWrite(int& requestedFrameCount);
     void endWrite();

@@ -165,12 +165,12 @@ static inline constexpr size_t rangedSize(spectrumRange range)
   return getEndIndex(range) - getStartIndex(range);
 }
 
-static inline const fftSpectrumData::const_iterator rangedBegin(const fftSpectrumData& array, spectrumRange range)
+static inline fftSpectrumData::const_iterator rangedBegin(const fftSpectrumData& array, spectrumRange range)
 {
   return array.cbegin() + getStartIndex(range);
 }
 
-static inline const fftSpectrumData::const_iterator rangedEnd(const fftSpectrumData& array, spectrumRange range)
+static inline fftSpectrumData::const_iterator rangedEnd(const fftSpectrumData& array, spectrumRange range)
 {
   return array.cbegin() + getEndIndex(range);
 }

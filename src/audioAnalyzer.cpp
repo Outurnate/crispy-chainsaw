@@ -2,10 +2,7 @@
 #include "audioEngine.hpp"
 
 #include <fftwpp/Array.h>
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-private-field"
 #include <fftwpp/fftw++.h>
-#pragma clang diagnostic pop
 
 #include "math.hpp"
 
