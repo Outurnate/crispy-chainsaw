@@ -10,7 +10,7 @@ public:
   virtual ~warpScene();
 
   void update(double delta, float width, float height) override;
-  void updateAudio(const audioAnalyzedFrame& audioFrame) override;
+  void updateAudio(const fftSpectrumData& audioFrame) override;
   void onReset(uint32_t width, uint32_t height) override;
 private:
   struct star

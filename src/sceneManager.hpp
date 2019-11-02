@@ -16,7 +16,7 @@ public:
   virtual ~scene();
 
   virtual void update(double delta, float width, float height) = 0;
-  virtual void updateAudio(const audioAnalyzedFrame& audioFrame) = 0;
+  virtual void updateAudio(const fftSpectrumData& audioFrame) = 0;
   virtual void onReset(uint32_t width, uint32_t height) = 0;
 };
 
@@ -36,7 +36,7 @@ public:
       setScene(0);
   }
   void update(double delta, float width, float height);
-  void updateAudio(const audioAnalyzedFrame& frame);
+  void updateAudio(const fftSpectrumData& frame);
   void onReset(uint32_t width, uint32_t height);
 private:
   class abstractSceneFactory
@@ -69,7 +69,7 @@ private:
   std::mutex frameAudioMutex;
   int currentItem;
   audioEngine engine;
-  audioAnalyzedFrame lastFrame;
+  fftSpectrumData lastFrame;
   resourceManager resources;
 };
 

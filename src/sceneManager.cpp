@@ -52,19 +52,20 @@ void sceneManager::update(double delta, float width, float height)
     std::array<float, audioSystem::FFT_BINS> data;
 
     for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-      data[i] = lastFrame.spectrum.at(i).magnitude;
+      data[i] = lastFrame.at(i).magnitude;
     plotValues(data.data(), audioSystem::FFT_BINS, 0.0f, 1.0f);
 
     for (unsigned i = 0; i < audioSystem::FFT_BINS; ++i)
-      data[i] = lastFrame.spectrum.at(i).balance;
+      data[i] = lastFrame.at(i).balance;
     plotValues(data.data(), audioSystem::FFT_BINS, -2.0f, 2.0f);
 
 //    ImGui::Text("Estimated tempo: %.0f", lastFrame.tempo);
 
     audioEngine::params params = engine.getParams();
-    ImGui::SliderFloat("Alpha", &params.alpha, 0.0f, 1.0f);
-    ImGui::SliderFloat("Gamma", &params.gamma, 0.0f, 10.0f);
-    ImGui::SliderFloat("Scale", &params.scale, 0.0f, 1.0f);
+    ImGui::SliderFloat("Alpha",    &params.alpha,    0.0f, 1.0f);
+    ImGui::SliderFloat("Gamma",    &params.gamma,    0.0f, 10.0f);
+    ImGui::SliderFloat("Scale",    &params.scale,    0.0f, 1.0f);
+    ImGui::SliderFloat("Exponent", &params.exponent, 1.0f, 5.0f);
     engine.setParams(params);
   }
 
@@ -85,7 +86,7 @@ void sceneManager::setScene(const size_t& index)
   currentScene.reset(scenes.at(index)->createScene(resources));
 }
 
-void sceneManager::updateAudio(const audioAnalyzedFrame& frame)
+void sceneManager::updateAudio(const fftSpectrumData& frame)
 {
   std::lock_guard lock(frameAudioMutex);
 

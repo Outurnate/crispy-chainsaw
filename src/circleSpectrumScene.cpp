@@ -56,11 +56,11 @@ void circleSpectrumScene::onReset(uint32_t width, uint32_t height)
   bgfx::reset(width, height, BGFX_RESET_MSAA_X16);
 }
 
-void circleSpectrumScene::updateAudio(const audioAnalyzedFrame& audioFrame)
+void circleSpectrumScene::updateAudio(const fftSpectrumData& audioFrame)
 {
   // begin lazy inefficient code TODO
   std::vector<float> left, right, combined;
-  std::for_each(rangedBegin(audioFrame.spectrum, spectrumRange::lowMidrange), rangedEnd(audioFrame.spectrum, spectrumRange::upperMidrange), [&left, &right](audioPoint point) { left.push_back(point.getLeft()); right.push_back(point.getRight()); });
+  std::for_each(rangedBegin(audioFrame, spectrumRange::lowMidrange), rangedEnd(audioFrame, spectrumRange::upperMidrange), [&left, &right](audioPoint point) { left.push_back(point.getLeft()); right.push_back(point.getRight()); });
   std::reverse(right.begin(), right.end());
   for (float x : right)
     combined.push_back(x);

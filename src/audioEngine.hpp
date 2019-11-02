@@ -25,7 +25,7 @@ public:
     float exponent = 1.0f;
   };
 
-  audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback);
+  audioEngine(std::function<void(const fftSpectrumData&)> analyzedFrameCallback);
   virtual ~audioEngine();
 
   const params& getParams() const;
@@ -46,7 +46,7 @@ private:
   std::thread analysisThread;
   boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<audioSystem::WINDOW_SIZE * 8> > analysisQueue; // 8 is completely arbitrary
   audioAnalyzer analysisEngine;
-  std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback;
+  std::function<void(const fftSpectrumData&)> analyzedFrameCallback;
   params currentParams;
 };
 

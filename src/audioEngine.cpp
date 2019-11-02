@@ -9,7 +9,7 @@
 
 using namespace std::placeholders;
 
-audioEngine::audioEngine(std::function<void(const audioAnalyzedFrame&)> analyzedFrameCallback)
+audioEngine::audioEngine(std::function<void(const fftSpectrumData&)> analyzedFrameCallback)
   : output(soundSystem, std::bind(&audioProvider::provide, provider, _1), std::bind(&audioEngine::audioPlayed, this, _1, _2)),
     playbackThread(&audioEngine::playback, this),
     analysisThread(&audioEngine::analysis, this),

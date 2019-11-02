@@ -100,13 +100,6 @@ typedef stereoPair<std::array<float, audioSystem::WINDOW_SIZE> > audioSourceFram
 typedef stereoPair<ranges::v3::span<float> > audioProviderFrame;
 typedef stereoPair<float> stereoSample;
 
-struct audioAnalyzedFrame
-{
-  fftSpectrumData spectrum;
-
-  audioAnalyzedFrame() : spectrum() {}
-};
-
 static inline constexpr size_t getStartIndex(spectrumRange range)
 {
   size_t val = 0;

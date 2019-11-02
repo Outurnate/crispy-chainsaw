@@ -149,11 +149,11 @@ void warpScene::update(double delta, float width, float height)
   bgfx::submit(GEOMETRY_PASS, program);
 }
 
-void warpScene::updateAudio(const audioAnalyzedFrame& audioFrame)
+void warpScene::updateAudio(const fftSpectrumData& audioFrame)
 {
   float sum = std::accumulate(
-      rangedBegin(audioFrame.spectrum, spectrumRange::subBass),
-      rangedEnd(audioFrame.spectrum, spectrumRange::bass),
+      rangedBegin(audioFrame, spectrumRange::subBass),
+      rangedEnd(audioFrame, spectrumRange::bass),
       0.0f,
       [](const float a, const audioPoint& b){ return a + b.magnitude; });
   float count = rangedSize(spectrumRange::subBass) + rangedSize(spectrumRange::bass);
