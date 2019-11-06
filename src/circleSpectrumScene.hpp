@@ -8,7 +8,7 @@
 class circleSpectrumScene : public scene
 {
 public:
-  circleSpectrumScene(resourceManager& resources);
+  circleSpectrumScene();
   virtual ~circleSpectrumScene();
 
   void update(double delta, float width, float height) override;
@@ -16,8 +16,8 @@ public:
   void onReset(uint32_t width, uint32_t height) override;
 private:
   unsigned points;
-  float baseRadius = 0.15f;
-  float circleWidth = 0.01f;
+  float baseRadius;
+  float circleWidth;
   std::vector<positionColorVertex> vertexBuffer;
   std::vector<uint16_t> indexBuffer;
   bgfx::ProgramHandle program;

@@ -13,7 +13,7 @@
 class scene
 {
 public:
-  scene(resourceManager& resources);
+  scene();
   virtual ~scene();
 
   virtual void update(double delta, float width, float height) = 0;
@@ -24,7 +24,7 @@ public:
 class sceneManager
 {
 public:
-  sceneManager(bigg::Allocator& allocator);
+  sceneManager();
   virtual ~sceneManager();
 
   template<typename T>
@@ -46,7 +46,7 @@ private:
     abstractSceneFactory();
     virtual ~abstractSceneFactory();
 
-    virtual scene* createScene(resourceManager& resources) const = 0;
+    virtual scene* createScene() const = 0;
   };
 
   template<typename T>
@@ -56,9 +56,9 @@ private:
     sceneFactory() {}
     ~sceneFactory() {}
 
-    scene* createScene(resourceManager& resources) const override
+    scene* createScene() const override
     {
-      return new T(resources);
+      return new T();
     }
   };
 
@@ -71,7 +71,6 @@ private:
   int currentItem;
   audioEngine engine;
   fftSpectrumData lastFrame;
-  resourceManager resources;
   boost::circular_buffer<float> frameDeltas;
 };
 

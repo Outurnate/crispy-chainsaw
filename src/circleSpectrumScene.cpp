@@ -1,22 +1,24 @@
 #include "circleSpectrumScene.hpp"
 
 #include "audioEngine.hpp"
+#include "globals.hpp"
 
 #include <algorithm>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <range/v3/algorithm/for_each.hpp>
 
 #define GEOMETRY_PASS 0
 
-circleSpectrumScene::circleSpectrumScene(resourceManager& resources)
-  : points(2 * (rangedSize(spectrumRange::lowMidrange) + rangedSize(spectrumRange::midrange) + rangedSize(spectrumRange::upperMidrange))),
-    vertexBuffer(2 * points, positionColorVertex { 0.0f, 0.0f, 0.0f, 0xff000000 }),
-    indexBuffer(6 * points, 0),
+circleSpectrumScene::circleSpectrumScene()
+  : scene(),
+    points(2 * (spectrumSize(spectrumRange::lowMidrange, spectrumRange::upperMidrange))),
     baseRadius(0.15f),
     circleWidth(0.01f),
-    scene(resources)
+    vertexBuffer(2 * points, positionColorVertex { 0.0f, 0.0f, 0.0f, 0xff000000 }),
+    indexBuffer(6 * points, 0)
 {
   program = resources.getShader("colors");
 
@@ -60,7 +62,9 @@ void circleSpectrumScene::updateAudio(const fftSpectrumData& audioFrame)
 {
   // begin lazy inefficient code TODO
   std::vector<float> left, right, combined;
-  std::for_each(rangedBegin(audioFrame, spectrumRange::lowMidrange), rangedEnd(audioFrame, spectrumRange::upperMidrange), [&left, &right](audioPoint point) { left.push_back(point.getLeft()); right.push_back(point.getRight()); });
+  ranges::for_each(
+      spectrumView(audioFrame, spectrumRange::lowMidrange, spectrumRange::upperMidrange),
+      [&left, &right](audioPoint point) { left.push_back(point.getChannel(channel::left)); right.push_back(point.getChannel(channel::right)); });
   std::reverse(right.begin(), right.end());
   for (float x : right)
     combined.push_back(x);

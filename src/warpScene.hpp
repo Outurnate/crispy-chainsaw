@@ -6,7 +6,7 @@
 class warpScene : public scene
 {
 public:
-  warpScene(resourceManager& resources);
+  warpScene();
   virtual ~warpScene();
 
   void update(double delta, float width, float height) override;
@@ -26,14 +26,17 @@ private:
   void renderStaticStar(const glm::vec2& coord);
   static inline void resetStar(star& obj);
 
-  bgfx::ProgramHandle program;
-  bgfx::VertexBufferHandle testVBO;
-  bgfx::IndexBufferHandle testEBO;
+  bgfx::ProgramHandle textures;
+  bgfx::ProgramHandle colors;
+  bgfx::VertexBufferHandle quadVBO;
+  bgfx::IndexBufferHandle quadEBO;
+  bgfx::VertexBufferHandle cubeVBO;
+  bgfx::IndexBufferHandle cubeEBO;
   bgfx::TextureHandle spotTexture;
   bgfx::TextureHandle pewTexture;
   bgfx::UniformHandle s_texColor;
   bgfx::UniformHandle blendColor;
-  float bassVolume;
+  //std::unordered_map<spectrumRange, float>
   std::array<star, 100> stars;
   std::array<glm::vec2, 500> staticStars;
 };

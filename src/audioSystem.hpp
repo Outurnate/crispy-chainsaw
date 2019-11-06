@@ -3,17 +3,12 @@
 
 #include <array>
 #include <range/v3/span.hpp>
+#include <range/v3/view/slice.hpp>
+#include <range/v3/numeric/accumulate.hpp>
 
 #define CHANNEL_LEFT  0
 #define CHANNEL_RIGHT 1
 
-// 20-60 Hz sub bass
-// 60-250 Hz bass
-// 250-500 Hz low midrange
-// 500-2000 Hz midrange
-// 2000-4000 Hz upper midrange
-// 4000-6000 Hz presence
-// 6000-20000 Hz brilliance
 enum class spectrumRange : unsigned
 {
   subBass = 0, // 20-60 Hz
@@ -25,19 +20,30 @@ enum class spectrumRange : unsigned
   brilliance = 6  // 6000-20000 Hz
 };
 
+enum class channel : unsigned
+{
+  left = CHANNEL_LEFT,
+  right = CHANNEL_RIGHT,
+  average = 1234
+};
+
 struct audioPoint
 {
   float magnitude;
   float balance;
 
-  float getLeft() const
+  float getChannel(channel which) const
   {
-    return ((2 * magnitude) + balance) / 2;
-  }
-
-  float getRight() const
-  {
-    return ((2 * magnitude) - balance) / 2;
+    switch (which)
+    {
+    case channel::left:
+      return ((2 * magnitude) + balance) / 2;
+    case channel::right:
+      return ((2 * magnitude) - balance) / 2;
+    default:
+    case channel::average:
+      return magnitude;
+    }
   }
 
   audioPoint operator+(const audioPoint& rhs) const { return { this->magnitude + rhs.magnitude, this->balance + rhs.balance }; }
@@ -160,19 +166,46 @@ static inline constexpr size_t getEndIndex(spectrumRange range)
   return val;
 }
 
-static inline constexpr size_t rangedSize(spectrumRange range)
+static inline constexpr size_t spectrumSize(spectrumRange range)
 {
   return getEndIndex(range) - getStartIndex(range);
 }
 
-static inline fftSpectrumData::const_iterator rangedBegin(const fftSpectrumData& array, spectrumRange range)
+static inline constexpr size_t spectrumSize(spectrumRange rangeBegin, spectrumRange rangeEnd)
 {
-  return array.cbegin() + getStartIndex(range);
+  return getEndIndex(rangeBegin) - getStartIndex(rangeEnd);
 }
 
-static inline fftSpectrumData::const_iterator rangedEnd(const fftSpectrumData& array, spectrumRange range)
+static inline auto spectrumView(const fftSpectrumData& array, spectrumRange range)
 {
-  return array.cbegin() + getEndIndex(range);
+  return array | ranges::views::slice(getStartIndex(range), getEndIndex(range));
+}
+
+static inline auto spectrumView(const fftSpectrumData& array, spectrumRange rangeBegin, spectrumRange rangeEnd)
+{
+  return array | ranges::views::slice(getStartIndex(rangeBegin), getEndIndex(rangeEnd));
+}
+
+static inline float spectrumAverage(const fftSpectrumData& array, spectrumRange range, channel sampleChannel = channel::average)
+{
+  float sum = ranges::accumulate(
+      spectrumView(array, range),
+      0.0f,
+      [sampleChannel](const float a, const audioPoint& b){ return a + b.getChannel(sampleChannel); });
+  float count = spectrumSize(range);
+
+  return sum / count;
+}
+
+static inline float spectrumAverage(const fftSpectrumData& array, spectrumRange rangeBegin, spectrumRange rangeEnd, channel sampleChannel = channel::average)
+{
+  float sum = ranges::accumulate(
+      spectrumView(array, rangeBegin, rangeEnd),
+      0.0f,
+      [sampleChannel](const float a, const audioPoint& b){ return a + b.getChannel(sampleChannel); });
+  float count = spectrumSize(rangeBegin, rangeEnd);
+
+  return sum / count;
 }
 
 #endif

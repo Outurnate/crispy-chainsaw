@@ -1,20 +1,20 @@
 #include "resourceManager.hpp"
 
+#include "globals.hpp"
+
+#include <bigg.hpp>
 #include <bimg/bimg.h>
 #include <boost/format.hpp>
 #include <exception>
 #include <vector>
 #include <fstream>
 #include <filesystem>
+
 namespace fs = std::filesystem;
-
-#include <iostream>
-
 const std::string shaderTemplatePath = "assets/shaders/%3%/%2%_%1%.bin";
 const std::string textureTemplatePath = "assets/textures/%1%.ktx";
 
-resourceManager::resourceManager(bigg::Allocator& allocator)
-  : allocator(allocator)
+resourceManager::resourceManager()
 {
 }
 
@@ -57,7 +57,7 @@ static void imageReleaseCb(void* _ptr, void* _userData)
   bimg::imageFree((bimg::ImageContainer*)_userData);
 }
 
-bgfx::TextureHandle loadTexture(bigg::Allocator& allocator, const fs::path& path)
+bgfx::TextureHandle loadTexture(bx::AllocatorI& allocator, const fs::path& path)
 {
   uint64_t flags = BGFX_TEXTURE_NONE | BGFX_SAMPLER_NONE;
   bgfx::TextureHandle handle = BGFX_INVALID_HANDLE;
@@ -91,7 +91,7 @@ bgfx::TextureHandle resourceManager::getTexture(const std::string& name)
     return textures[name];
   else
   {
-    auto handle = loadTexture(allocator, (boost::format(textureTemplatePath) % name).str().c_str());
+    auto handle = loadTexture(*allocator, (boost::format(textureTemplatePath) % name).str().c_str());
     textures.insert({ name, handle });
     return handle;
   }

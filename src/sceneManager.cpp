@@ -6,15 +6,14 @@
 
 using namespace std::placeholders;
 
-scene::scene(resourceManager& resources) {}
+scene::scene() {}
 scene::~scene() {}
 
-sceneManager::sceneManager(bigg::Allocator& allocator) :
+sceneManager::sceneManager() :
     scenes(),
     currentScene(nullptr),
     engine(std::bind(&sceneManager::updateAudio, this, _1)),
     currentItem(0),
-    resources(allocator),
     frameDeltas(256, 0.0f)
 {
 }
@@ -88,7 +87,7 @@ void sceneManager::update(double delta, float width, float height)
 
 void sceneManager::setScene(const size_t& index)
 {
-  currentScene.reset(scenes.at(index)->createScene(resources));
+  currentScene.reset(scenes.at(index)->createScene());
 }
 
 void sceneManager::updateAudio(const fftSpectrumData& frame)

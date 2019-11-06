@@ -2,21 +2,25 @@
 #define RESOURCEMANAGER_HPP
 
 #include "gfxUtils.hpp"
-#include <bigg.hpp>
+
 #include <string>
 #include <unordered_map>
-#include <boost/core/noncopyable.hpp>
 
-class resourceManager : private boost::noncopyable
+class resourceManager
 {
 public:
-  resourceManager(bigg::Allocator& allocator);
+  resourceManager();
   virtual ~resourceManager();
+
+  resourceManager(const resourceManager&) = delete;
+  resourceManager& operator=(const resourceManager&) = delete;
+
+  resourceManager(resourceManager&&) = default;
+  resourceManager& operator=(resourceManager&&) = default;
 
   bgfx::ProgramHandle getShader(const std::string& name);
   bgfx::TextureHandle getTexture(const std::string& name);
 private:
-  bigg::Allocator& allocator;
   std::unordered_map<std::string, bgfx::ProgramHandle> programs;
   std::unordered_map<std::string, bgfx::TextureHandle> textures;
 };
