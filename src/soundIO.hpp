@@ -21,9 +21,12 @@ namespace soundio
   };
 
   class outputDevice;
+  class inputDevice;
+
   class system
   {
     friend class outputDevice;
+    friend class inputDevice;
   public:
     system();
     virtual ~system();
@@ -35,6 +38,7 @@ namespace soundio
     system& operator=(system&&) = default;
 
     void waitEvents();
+    void flushEvents();
     void wakeUp();
   private:
     SoundIo* obj;
@@ -54,6 +58,26 @@ namespace soundio
 
     outputDevice(outputDevice&&) = default;
     outputDevice& operator=(outputDevice&&) = default;
+
+    const std::string getName() const;
+  private:
+    SoundIoDevice* obj;
+  };
+
+  class inStream;
+
+  class inputDevice
+  {
+    friend class inStream;
+  public:
+    inputDevice(system& system);
+    virtual ~inputDevice();
+
+    inputDevice(const inputDevice&) = delete;
+    inputDevice& operator=(const inputDevice&) = delete;
+
+    inputDevice(inputDevice&&) = default;
+    inputDevice& operator=(inputDevice&&) = default;
 
     const std::string getName() const;
   private:
@@ -82,7 +106,6 @@ namespace soundio
     void clearBuffer();
     std::chrono::duration<double> getLatency(); // seconds
 
-    // when concepts are a thing, use the range cop
     template<typename T>
     auto channel(int index)
     {
@@ -97,6 +120,39 @@ namespace soundio
     std::string name;
     callback writeCallback;
     SoundIoOutStream* obj;
+  };
+
+  class inStream
+  {
+  public:
+    typedef std::function<void(inStream&, int, int)> callback;
+
+    inStream(inputDevice& device, callback readCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 48000);
+    virtual ~inStream();
+
+    inStream(const inStream&) = delete;
+    inStream& operator=(const inStream&) = delete;
+
+    inStream(inStream&&) = default;
+    inStream& operator=(inStream&&) = default;
+
+    bool beginRead(int& requestedFrameCount);
+    void endRead();
+    void start();
+
+    template<typename T>
+    auto channel(int index)
+    {
+      assert((areas[index].step % sizeof(T)) == 0);
+      size_t strideT = areas[index].step / sizeof(T);
+      return ranges::v3::span<T>(reinterpret_cast<T*>(areas[index].ptr), frameCount * strideT)
+          | ranges::views::stride(strideT);
+    }
+  private:
+    ranges::v3::span<SoundIoChannelArea> areas;
+    int frameCount;
+    callback readCallback;
+    SoundIoInStream* obj;
   };
 };
 

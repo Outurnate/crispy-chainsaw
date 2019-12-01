@@ -198,6 +198,7 @@ void warpScene::update(double delta, float width, float height)
 
 void warpScene::updateAudio(const fftSpectrumData& audioFrame)
 {
+  (void)audioFrame;
   //bassVolume = spectrumAverage(audioFrame, spectrumRange::subBass, spectrumRange::bass) / bassAmplitude;
 }
 

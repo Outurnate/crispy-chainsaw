@@ -103,7 +103,7 @@ public:
 
 typedef std::array<audioPoint, audioSystem::FFT_BINS> fftSpectrumData;
 typedef stereoPair<std::array<float, audioSystem::WINDOW_SIZE> > audioSourceFrame;
-typedef stereoPair<ranges::v3::span<float> > audioProviderFrame;
+typedef stereoPair<std::vector<float> > audioProviderFrame;
 typedef stereoPair<float> stereoSample;
 
 static inline constexpr size_t getStartIndex(spectrumRange range)
@@ -173,7 +173,7 @@ static inline constexpr size_t spectrumSize(spectrumRange range)
 
 static inline constexpr size_t spectrumSize(spectrumRange rangeBegin, spectrumRange rangeEnd)
 {
-  return getEndIndex(rangeBegin) - getStartIndex(rangeEnd);
+  return getEndIndex(rangeEnd) - getStartIndex(rangeBegin);
 }
 
 static inline auto spectrumView(const fftSpectrumData& array, spectrumRange range)

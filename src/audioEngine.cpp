@@ -4,17 +4,17 @@
 #include <queue>
 #include <complex>
 #include <numeric>
-#include <time.h>
 #include <spdlog/spdlog.h>
 
 using namespace std::placeholders;
 
 audioEngine::audioEngine(std::function<void(const fftSpectrumData&)> analyzedFrameCallback)
-  : output(soundSystem, std::bind(&audioProvider::provide, provider, _1), std::bind(&audioEngine::audioPlayed, this, _1, _2)),
+  : delayedFrames(),
+    provider(soundSystem),
+    output(soundSystem, std::bind(&audioProvider::provide, &provider, _1), std::bind(&audioEngine::audioPlayed, this, _1, _2)),
     playbackThread(&audioEngine::playback, this),
     analysisThread(&audioEngine::analysis, this),
-    analyzedFrameCallback(analyzedFrameCallback),
-    delayedFrames()
+    analyzedFrameCallback(analyzedFrameCallback)
 {
   output.start();
 }
@@ -37,7 +37,7 @@ void audioEngine::playback()
 {
   while (2 > 1)
   {
-    soundSystem.waitEvents();
+    soundSystem.flushEvents();
     processDelayedFrames();
   }
 }
@@ -91,12 +91,9 @@ void audioEngine::processDelayedFrames()
 
 void audioEngine::analysis()
 {
-  struct timespec time;
-  time.tv_sec = 0;
-  time.tv_nsec = 500;
-
   audioSourceFrame analysisSamples;
   unsigned samplesReadyForAnalysis;
+  std::array<stereoSample, audioSystem::WINDOW_SIZE> popped;
 
   while (2 > 1)
   {
@@ -104,14 +101,14 @@ void audioEngine::analysis()
 
     while (analysisQueue.read_available() > audioSystem::WINDOW_SIZE)
     {
-      stereoSample sample;
+      analysisQueue.pop(popped.data(), popped.size());
 
-      for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
-      {
-        analysisQueue.pop(sample);
-        analysisSamples.left[i]  = sample.left;
-        analysisSamples.right[i] = sample.right;
-      }
+      if (samplesReadyForAnalysis == 0)
+        for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
+        {
+          analysisSamples.left[i]  = popped[i].left;
+          analysisSamples.right[i] = popped[i].right;
+        }
 
       ++samplesReadyForAnalysis;
     }
@@ -119,9 +116,5 @@ void audioEngine::analysis()
       analyzedFrameCallback(analysisEngine.analyze(analysisSamples, currentParams.alpha, currentParams.gamma, currentParams.scale, currentParams.exponent));
     if (samplesReadyForAnalysis > 1)
       spdlog::warn("{} samples read.  Analysis thread is running behind", samplesReadyForAnalysis);
-
-    soundSystem.wakeUp();
-    //std::this_thread::yield();
-//    nanosleep(&time, NULL);
   }
 }

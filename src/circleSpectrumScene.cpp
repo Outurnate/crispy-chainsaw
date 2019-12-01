@@ -17,8 +17,8 @@ circleSpectrumScene::circleSpectrumScene()
     points(2 * (spectrumSize(spectrumRange::lowMidrange, spectrumRange::upperMidrange))),
     baseRadius(0.15f),
     circleWidth(0.01f),
-    vertexBuffer(2 * points, positionColorVertex { 0.0f, 0.0f, 0.0f, 0xff000000 }),
-    indexBuffer(6 * points, 0)
+    vertexBuffer(2 * points/*, positionColorVertex { 0.0f, 0.0f, 0.0f, 0xff000000 }*/),
+    indexBuffer(6 * points/*, 0*/)
 {
   program = resources.getShader("colors");
 
@@ -89,6 +89,7 @@ void circleSpectrumScene::updateAudio(const fftSpectrumData& audioFrame)
 
 void circleSpectrumScene::update(double delta, float width, float height)
 {
+  (void)delta;
   float aspect = width / height;
 
   glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 0.0f, -35.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));

@@ -1,6 +1,7 @@
 #include "soundIO.hpp"
 
 #include <new>
+#include <fmt/format.h>
 
 #define SOUNDIO_WRAP(X) if(int err=X;err)throw soundioException(err);
 
@@ -40,6 +41,11 @@ void soundio::system::waitEvents()
   soundio_wait_events(obj);
 }
 
+void soundio::system::flushEvents()
+{
+  soundio_flush_events(obj);
+}
+
 void soundio::system::wakeUp()
 {
   soundio_wakeup(obj);
@@ -62,6 +68,27 @@ soundio::outputDevice::~outputDevice()
 }
 
 const std::string soundio::outputDevice::getName() const
+{
+  return obj->name;
+}
+
+soundio::inputDevice::inputDevice(soundio::system& system)
+{
+  int defaultIndex = soundio_default_input_device_index(system.obj);
+
+  if (defaultIndex < 0)
+    throw std::runtime_error("no input device found");
+
+  if (obj = soundio_get_input_device(system.obj, defaultIndex); !obj)
+    throw std::bad_alloc();
+}
+
+soundio::inputDevice::~inputDevice()
+{
+  soundio_device_unref(obj);
+}
+
+const std::string soundio::inputDevice::getName() const
 {
   return obj->name;
 }
@@ -134,4 +161,52 @@ std::chrono::duration<double> soundio::outStream::getLatency()
   double latency;
   SOUNDIO_WRAP(soundio_outstream_get_latency(obj, &latency));
   return std::chrono::duration<double>(latency);
+}
+
+soundio::inStream::inStream(inputDevice& device, callback readCallback, SoundIoFormat format, int sampleRate)
+  : readCallback(readCallback)
+{
+  if (obj = soundio_instream_create(device.obj); !obj)
+    throw std::bad_alloc();
+
+  obj->format = format;
+  obj->sample_rate = sampleRate;
+  obj->userdata = this;
+
+  obj->read_callback = [](SoundIoInStream* obj, int frameCountMin, int frameCountMax)
+      {
+        inStream& stream = *reinterpret_cast<inStream*>(obj->userdata);
+        stream.readCallback(stream, frameCountMin, frameCountMax);
+      };
+
+  SOUNDIO_WRAP(soundio_instream_open(obj))
+}
+
+soundio::inStream::~inStream()
+{
+  soundio_instream_destroy(obj);
+}
+
+void soundio::inStream::start()
+{
+  SOUNDIO_WRAP(soundio_instream_start(obj))
+}
+
+bool soundio::inStream::beginRead(int& requestedFrameCount)
+{
+  SoundIoChannelArea* areasRaw;
+  SOUNDIO_WRAP(soundio_instream_begin_read(obj, &areasRaw, &requestedFrameCount))
+
+  if (!areasRaw)
+    return false;
+
+  areas = ranges::v3::span<SoundIoChannelArea>(areasRaw, obj->layout.channel_count);
+  this->frameCount = requestedFrameCount;
+
+  return true;
+}
+
+void soundio::inStream::endRead()
+{
+  SOUNDIO_WRAP(soundio_instream_end_read(obj))
 }
