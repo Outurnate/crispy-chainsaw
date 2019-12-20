@@ -8,7 +8,7 @@ using namespace std::placeholders;
 
 audioProvider::audioProvider(soundio::system& system)
   : device(system),
-    stream(device, std::bind(&audioProvider::readCallback, this, _1, _2, _3))
+    stream(device, std::bind(&audioProvider::readCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, audioSystem::SAMPLE_RATE)
 {
   stream.start();
 }

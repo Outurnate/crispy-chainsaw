@@ -60,7 +60,6 @@ void audioEngine::processDelayedFrames()
   while (current != delayedFrames.end())
   {
     auto& [latency, frame] = *current;
-    //latency -= std::chrono::duration_cast<std::chrono::duration<double> >(now - lastDelayProcess);
 
     // when the latency hits zero, copy this chunk of
     // samples from thread local delayedFrames to spsc
