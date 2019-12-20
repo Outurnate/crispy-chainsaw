@@ -89,7 +89,7 @@ namespace soundio
   public:
     typedef std::function<void(outStream&, int, int)> callback;
 
-    outStream(outputDevice& device, const std::string& name, callback writeCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 48000);
+    outStream(outputDevice& device, const std::string& name, callback writeCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
     virtual ~outStream();
 
     outStream(const outStream&) = delete;
@@ -127,7 +127,7 @@ namespace soundio
   public:
     typedef std::function<void(inStream&, int, int)> callback;
 
-    inStream(inputDevice& device, callback readCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 48000);
+    inStream(inputDevice& device, callback readCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
     virtual ~inStream();
 
     inStream(const inStream&) = delete;

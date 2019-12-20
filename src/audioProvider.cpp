@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 using namespace std::placeholders;
 
@@ -26,7 +27,7 @@ audioProviderFrame audioProvider::provide(int frames)
     {
       sample.left = 0.0f;
       sample.right = 0.0f;
-      // TODO log this
+      spdlog::warn("Provider underrun; emitting silence");
     }
     result.left.at(i)  = sample.left;
     result.right.at(i) = sample.right;
@@ -53,11 +54,11 @@ void audioProvider::readCallback(soundio::inStream& stream, int minFrames, int m
     // fill tempSamples
     if (!success)
     {
-      // TODO internal frame drop, emit silence
       for (unsigned i = 0; i < framesRead; ++i)
       {
         tempSamples[i].left  = 0;
         tempSamples[i].right = 0;
+        spdlog::warn("libsoundio underrun; putting silence into buffer");
       }
     }
     else
@@ -75,7 +76,7 @@ void audioProvider::readCallback(soundio::inStream& stream, int minFrames, int m
     if (int framesPushed = readSamples.push(tempSamples.data(), tempSamples.size());
         framesPushed != framesRead)
     {
-      // TODO frame drop
+      spdlog::warn("Provider overrun; dropping read frame");
     }
 
     stream.endRead();

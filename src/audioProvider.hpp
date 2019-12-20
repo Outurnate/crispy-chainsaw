@@ -18,7 +18,7 @@ private:
 
   soundio::inputDevice device;
   soundio::inStream stream;
-  boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<2048> > readSamples; // TODO size this intelligently
+  boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<204800> > readSamples; // TODO size this intelligently
 };
 
 #endif
