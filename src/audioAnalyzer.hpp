@@ -3,17 +3,16 @@
 
 #include "audioSystem.hpp"
 
-class audioAnalyzer
+class AudioAnalyzer
 {
 public:
-  audioAnalyzer();
-  virtual ~audioAnalyzer();
+  AudioAnalyzer();
 
-  const fftSpectrumData& analyze(const audioSourceFrame& sample, float alpha, float gamma, float scale, float exponent);
+  const FFTSpectrumData& analyze(const AudioSourceFrame& sample, float alpha, float gamma, float scale, float exponent);
 private:
-  std::array<float, audioSystem::FFT_BINS> analyzeChannel(const std::array<float, audioSystem::WINDOW_SIZE>& channelData, const std::array<float, audioSystem::FFT_BINS>& lastFrame, float alpha, float gamma, float scale, float exponent);
-  stereoPair<std::array<float, audioSystem::FFT_BINS> > lastFrame;
-  fftSpectrumData currentData;
+  std::array<float, AudioSystem::FFT_BINS> analyzeChannel(const std::array<float, AudioSystem::WINDOW_SIZE>& channelData, const std::array<float, AudioSystem::FFT_BINS>& lastFrame, float alpha, float gamma, float scale, float exponent);
+  StereoPair<std::array<float, AudioSystem::FFT_BINS> > lastFrame;
+  FFTSpectrumData currentData;
 };
 
 #endif

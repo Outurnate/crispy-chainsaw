@@ -6,19 +6,18 @@
 
 #include <boost/lockfree/spsc_queue.hpp>
 
-class audioProvider
+class AudioProvider
 {
 public:
-  audioProvider(soundio::system& system);
-  virtual ~audioProvider();
+  AudioProvider(SoundIO::System& system);
 
-  audioProviderFrame provide(int frames);
+  AudioProviderFrame provide(int frames);
 private:
-  void readCallback(soundio::inStream& stream, int minFrames, int maxFrames);
+  void readCallback(SoundIO::InStream& stream, int minFrames, int maxFrames);
 
-  soundio::inputDevice device;
-  soundio::inStream stream;
-  boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<audioSystem::SAMPLE_RATE * 5> > readSamples; // 5 second buffer
+  SoundIO::InputDevice device;
+  SoundIO::InStream stream;
+  boost::lockfree::spsc_queue<StereoSample, boost::lockfree::capacity<AudioSystem::SAMPLE_RATE * 5> > readSamples; // 5 second buffer
 };
 
 #endif

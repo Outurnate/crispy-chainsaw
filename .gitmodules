@@ -1,6 +1,0 @@
-[submodule "libs/AudioFile"]
-	path = libs/AudioFile
-	url = https://github.com/adamstark/AudioFile.git
-[submodule "libs/bigg"]
-	path = libs/bigg
-	url = https://github.com/Outurnate/bigg.git

@@ -3,23 +3,23 @@
 #include <new>
 #include <fmt/format.h>
 
-#define SOUNDIO_WRAP(X) if(int err=X;err)throw soundioException(err);
+#define SOUNDIO_WRAP(X) if(int err=X;err)throw SoundIOException(err);
 
-soundio::soundioException::soundioException(int err)
+SoundIO::SoundIOException::SoundIOException(int err)
   : err(err)
 {
 }
 
-soundio::soundioException::~soundioException()
+SoundIO::SoundIOException::~SoundIOException()
 {
 }
 
-const char* soundio::soundioException::what() const noexcept
+const char* SoundIO::SoundIOException::what() const noexcept
 {
   return soundio_strerror(err);
 }
 
-soundio::system::system()
+SoundIO::System::System()
 {
   obj = soundio_create();
 
@@ -31,27 +31,27 @@ soundio::system::system()
   soundio_flush_events(obj);
 }
 
-soundio::system::~system()
+SoundIO::System::~System()
 {
   soundio_destroy(obj);
 }
 
-void soundio::system::waitEvents()
+void SoundIO::System::waitEvents()
 {
   soundio_wait_events(obj);
 }
 
-void soundio::system::flushEvents()
+void SoundIO::System::flushEvents()
 {
   soundio_flush_events(obj);
 }
 
-void soundio::system::wakeUp()
+void SoundIO::System::wakeUp()
 {
   soundio_wakeup(obj);
 }
 
-soundio::outputDevice::outputDevice(soundio::system& system)
+SoundIO::OutputDevice::OutputDevice(SoundIO::System& system)
 {
   int defaultIndex = soundio_default_output_device_index(system.obj);
 
@@ -62,17 +62,17 @@ soundio::outputDevice::outputDevice(soundio::system& system)
     throw std::bad_alloc();
 }
 
-soundio::outputDevice::~outputDevice()
+SoundIO::OutputDevice::~OutputDevice()
 {
   soundio_device_unref(obj);
 }
 
-const std::string soundio::outputDevice::getName() const
+const std::string SoundIO::OutputDevice::getName() const
 {
   return obj->name;
 }
 
-soundio::inputDevice::inputDevice(soundio::system& system)
+SoundIO::InputDevice::InputDevice(SoundIO::System& system)
 {
   int defaultIndex = soundio_default_input_device_index(system.obj);
 
@@ -83,17 +83,17 @@ soundio::inputDevice::inputDevice(soundio::system& system)
     throw std::bad_alloc();
 }
 
-soundio::inputDevice::~inputDevice()
+SoundIO::InputDevice::~InputDevice()
 {
   soundio_device_unref(obj);
 }
 
-const std::string soundio::inputDevice::getName() const
+const std::string SoundIO::InputDevice::getName() const
 {
   return obj->name;
 }
 
-soundio::outStream::outStream(outputDevice& device, const std::string& name, callback writeCallback, SoundIoFormat format, int sampleRate)
+SoundIO::OutStream::OutStream(OutputDevice& device, const std::string& name, Callback writeCallback, SoundIoFormat format, int sampleRate)
   : name(name), writeCallback(writeCallback)
 {
   if (obj = soundio_outstream_create(device.obj); !obj)
@@ -106,7 +106,7 @@ soundio::outStream::outStream(outputDevice& device, const std::string& name, cal
 
   obj->write_callback = [](SoundIoOutStream* obj, int frameCountMin, int frameCountMax)
       {
-        outStream& stream = *reinterpret_cast<outStream*>(obj->userdata);
+        OutStream& stream = *reinterpret_cast<OutStream*>(obj->userdata);
         stream.writeCallback(stream, frameCountMin, frameCountMax);
       };
 
@@ -115,22 +115,22 @@ soundio::outStream::outStream(outputDevice& device, const std::string& name, cal
   this->name = std::string(obj->name);
 }
 
-soundio::outStream::~outStream()
+SoundIO::OutStream::~OutStream()
 {
   soundio_outstream_destroy(obj);
 }
 
-int soundio::outStream::getChannels() const
+int SoundIO::OutStream::getChannels() const
 {
   return obj->layout.channel_count;
 }
 
-const std::string soundio::outStream::getName() const
+const std::string SoundIO::OutStream::getName() const
 {
   return name;
 }
 
-void soundio::outStream::beginWrite(int& requestedFrameCount)
+void SoundIO::OutStream::beginWrite(int& requestedFrameCount)
 {
   SoundIoChannelArea* areasRaw;
 
@@ -141,29 +141,29 @@ void soundio::outStream::beginWrite(int& requestedFrameCount)
   this->frameCount = requestedFrameCount;
 }
 
-void soundio::outStream::endWrite()
+void SoundIO::OutStream::endWrite()
 {
   SOUNDIO_WRAP(soundio_outstream_end_write(obj))
 }
 
-void soundio::outStream::start()
+void SoundIO::OutStream::start()
 {
   SOUNDIO_WRAP(soundio_outstream_start(obj))
 }
 
-void soundio::outStream::clearBuffer()
+void SoundIO::OutStream::clearBuffer()
 {
   SOUNDIO_WRAP(soundio_outstream_clear_buffer(obj))
 }
 
-std::chrono::duration<double> soundio::outStream::getLatency()
+std::chrono::duration<double> SoundIO::OutStream::getLatency()
 {
   double latency;
   SOUNDIO_WRAP(soundio_outstream_get_latency(obj, &latency));
   return std::chrono::duration<double>(latency);
 }
 
-soundio::inStream::inStream(inputDevice& device, callback readCallback, SoundIoFormat format, int sampleRate)
+SoundIO::InStream::InStream(InputDevice& device, Callback readCallback, SoundIoFormat format, int sampleRate)
   : readCallback(readCallback)
 {
   if (obj = soundio_instream_create(device.obj); !obj)
@@ -175,24 +175,24 @@ soundio::inStream::inStream(inputDevice& device, callback readCallback, SoundIoF
 
   obj->read_callback = [](SoundIoInStream* obj, int frameCountMin, int frameCountMax)
       {
-        inStream& stream = *reinterpret_cast<inStream*>(obj->userdata);
+        InStream& stream = *reinterpret_cast<InStream*>(obj->userdata);
         stream.readCallback(stream, frameCountMin, frameCountMax);
       };
 
   SOUNDIO_WRAP(soundio_instream_open(obj))
 }
 
-soundio::inStream::~inStream()
+SoundIO::InStream::~InStream()
 {
   soundio_instream_destroy(obj);
 }
 
-void soundio::inStream::start()
+void SoundIO::InStream::start()
 {
   SOUNDIO_WRAP(soundio_instream_start(obj))
 }
 
-bool soundio::inStream::beginRead(int& requestedFrameCount)
+bool SoundIO::InStream::beginRead(int& requestedFrameCount)
 {
   SoundIoChannelArea* areasRaw;
   SOUNDIO_WRAP(soundio_instream_begin_read(obj, &areasRaw, &requestedFrameCount))
@@ -206,7 +206,7 @@ bool soundio::inStream::beginRead(int& requestedFrameCount)
   return true;
 }
 
-void soundio::inStream::endRead()
+void SoundIO::InStream::endRead()
 {
   SOUNDIO_WRAP(soundio_instream_end_read(obj))
 }

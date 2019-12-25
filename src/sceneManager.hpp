@@ -1,77 +1,48 @@
 #ifndef SCENEMANAGER_HPP
 #define SCENEMANAGER_HPP
 
-#include <memory>
+#include <vector>
 #include <mutex>
 #include <boost/circular_buffer.hpp>
+#include <osgViewer/Viewer>
 
 #include "audioSystem.hpp"
 #include "audioEngine.hpp"
 
-#include "resourceManager.hpp"
-
-class scene
+class Scene
 {
 public:
-  scene();
-  virtual ~scene();
+  Scene();
+  virtual ~Scene();
 
-  virtual void update(double delta, float width, float height) = 0;
-  virtual void updateAudio(const fftSpectrumData& audioFrame) = 0;
-  virtual void onReset(uint32_t width, uint32_t height) = 0;
+  virtual const std::string getDisplayName() const = 0;
+  virtual const std::string getName() const = 0;
+  virtual void show() = 0;
+  virtual void hide() = 0;
+  virtual void update(double delta) = 0;
+  virtual void updateAudio(const FFTSpectrumData& audioFrame) = 0;
 };
 
-class sceneManager
+class SceneManager
 {
 public:
-  sceneManager();
-  virtual ~sceneManager();
+  SceneManager();
 
   template<typename T>
-  void registerScene(const std::string& name)
-  {
-    scenes.emplace_back(new sceneFactory<T>());
-    sceneNames.emplace_back(name);
-
-    if (!currentScene)
-      setScene(0);
-  }
-  void update(double delta, float width, float height);
-  void updateAudio(const fftSpectrumData& frame);
-  void onReset(uint32_t width, uint32_t height);
+  void registerScene() { scenes.emplace_back(new T()); }
+  void run();
 private:
-  class abstractSceneFactory
-  {
-  public:
-    abstractSceneFactory();
-    virtual ~abstractSceneFactory();
+  void updateAudio(const FFTSpectrumData& audioFrame);
+  void setScene(size_t index);
 
-    virtual scene* createScene() const = 0;
-  };
+  osgViewer::Viewer viewer;
+  std::vector<std::unique_ptr<Scene> > scenes;
+  size_t currentScene;
 
-  template<typename T>
-  class sceneFactory : public abstractSceneFactory
-  {
-  public:
-    sceneFactory() {}
-    ~sceneFactory() {}
-
-    scene* createScene() const override
-    {
-      return new T();
-    }
-  };
-
-  void setScene(const size_t& index);
-
-  std::vector<std::unique_ptr<abstractSceneFactory> > scenes;
-  std::vector<std::string> sceneNames;
-  std::unique_ptr<scene> currentScene;
-  std::mutex frameAudioMutex;
-  int currentItem;
-  audioEngine engine;
-  fftSpectrumData lastFrame;
   boost::circular_buffer<float> frameDeltas;
+
+  std::mutex frameAudioMutex;
+  AudioEngine engine;
 };
 
 #endif

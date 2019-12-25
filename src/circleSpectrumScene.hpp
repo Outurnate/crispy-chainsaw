@@ -2,27 +2,28 @@
 #define CIRCLESPECTRUMSCENE_HPP
 
 #include "sceneManager.hpp"
-#include "gfxUtils.hpp"
 #include <vector>
 
-class circleSpectrumScene : public scene
+class BlackHoleScene : public Scene
 {
 public:
-  circleSpectrumScene();
-  virtual ~circleSpectrumScene();
+  BlackHoleScene();
 
-  void update(double delta, float width, float height) override;
-  void updateAudio(const fftSpectrumData& audioFrame) override;
-  void onReset(uint32_t width, uint32_t height) override;
+  const std::string getDisplayName() const;
+  const std::string getName() const;
+  void show();
+  void hide();
+  void update(double delta) override;
+  void updateAudio(const FFTSpectrumData& audioFrame) override;
 private:
   unsigned points;
   float baseRadius;
   float circleWidth;
-  std::vector<positionColorVertex> vertexBuffer;
+  /*std::vector<positionColorVertex> vertexBuffer;
   std::vector<uint16_t> indexBuffer;
   bgfx::ProgramHandle program;
   bgfx::DynamicVertexBufferHandle circleVBO;
-  bgfx::IndexBufferHandle circleEBO;
+  bgfx::IndexBufferHandle circleEBO;*/
 };
 
 #endif

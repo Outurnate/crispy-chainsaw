@@ -4,24 +4,20 @@
 
 using namespace std::placeholders;
 
-audioOutput::audioOutput(soundio::system& system, provideAudioCallback providerCallback, playedAudioCallback playedCallback)
+AudioOutput::AudioOutput(SoundIO::System& system, ProvideAudioCallback providerCallback, PlayedAudioCallback playedCallback)
   : providerCallback(providerCallback),
     playedCallback(playedCallback),
     device(system),
-    stream(device, "death by cold fries", std::bind(&audioOutput::writeCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, audioSystem::SAMPLE_RATE)
+    stream(device, "death by cold fries", std::bind(&AudioOutput::writeCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, AudioSystem::SAMPLE_RATE)
 {
 }
 
-audioOutput::~audioOutput()
-{
-}
-
-void audioOutput::start()
+void AudioOutput::start()
 {
   stream.start();
 }
 
-void audioOutput::writeCallback(soundio::outStream& stream, int minFrames, int maxFrames)
+void AudioOutput::writeCallback(SoundIO::OutStream& stream, int minFrames, int maxFrames)
 {
   (void)minFrames;
   int framesLeft = maxFrames;
@@ -34,7 +30,7 @@ void audioOutput::writeCallback(soundio::outStream& stream, int minFrames, int m
     if (!frameCount)
       break;
 
-    audioProviderFrame providerFrame = providerCallback(frameCount);
+    AudioProviderFrame providerFrame = providerCallback(frameCount);
     auto leftStreamFrame = stream.channel<float>(CHANNEL_LEFT);
     auto rightStreamFrame = stream.channel<float>(CHANNEL_RIGHT);
 

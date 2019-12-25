@@ -14,10 +14,10 @@
 #include "audioOutput.hpp"
 #include "soundIO.hpp"
 
-class audioEngine
+class AudioEngine
 {
 public:
-  struct params
+  struct Params
   {
     float alpha = 0.2f;
     float gamma = 2.0f;
@@ -25,29 +25,28 @@ public:
     float exponent = 1.0f;
   };
 
-  audioEngine(std::function<void(const fftSpectrumData&)> analyzedFrameCallback);
-  virtual ~audioEngine();
+  AudioEngine(std::function<void(const FFTSpectrumData&)> AnalyzedFrameCallback);
 
-  const params& getParams() const;
-  void setParams(const params& newParams);
+  const Params& getParams() const;
+  void setParams(const Params& newParams);
 private:
   typedef std::chrono::steady_clock clock;
 
   void analysis();
   void playback();
-  void audioPlayed(const audioProviderFrame& frame, std::chrono::duration<double> latency);
+  void audioPlayed(const AudioProviderFrame& frame, std::chrono::duration<double> latency);
   void processDelayedFrames();
 
-  soundio::system soundSystem;
-  std::list<std::tuple<std::chrono::duration<double>, stereoPair<std::vector<float> > > > delayedFrames;
-  audioProvider provider;
-  audioOutput output;
+  SoundIO::System soundSystem;
+  std::list<std::tuple<std::chrono::duration<double>, StereoPair<std::vector<float> > > > delayedFrames;
+  AudioProvider provider;
+  AudioOutput output;
   std::thread playbackThread;
   std::thread analysisThread;
-  boost::lockfree::spsc_queue<stereoSample, boost::lockfree::capacity<audioSystem::WINDOW_SIZE * 8> > analysisQueue; // 8 is completely arbitrary
-  audioAnalyzer analysisEngine;
-  std::function<void(const fftSpectrumData&)> analyzedFrameCallback;
-  params currentParams;
+  boost::lockfree::spsc_queue<StereoSample, boost::lockfree::capacity<AudioSystem::WINDOW_SIZE * 8> > analysisQueue; // 8 is completely arbitrary
+  AudioAnalyzer analysisEngine;
+  std::function<void(const FFTSpectrumData&)> analyzedFrameCallback;
+  Params currentParams;
 };
 
 #endif

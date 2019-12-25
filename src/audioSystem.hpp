@@ -9,62 +9,62 @@
 #define CHANNEL_LEFT  0
 #define CHANNEL_RIGHT 1
 
-enum class spectrumRange : unsigned
+enum class SpectrumRange : unsigned
 {
-  subBass = 0, // 20-60 Hz
-  bass = 1, // 60-250 Hz
-  lowMidrange = 2, // 250-500 Hz
-  midrange = 3, // 500-2000 Hz
-  upperMidrange = 4, // 2000-4000 Hz
-  presence = 5, // 4000-6000 Hz
-  brilliance = 6  // 6000-20000 Hz
+  SubBass = 0, // 20-60 Hz
+  Bass = 1, // 60-250 Hz
+  LowMidrange = 2, // 250-500 Hz
+  Midrange = 3, // 500-2000 Hz
+  UpperMidrange = 4, // 2000-4000 Hz
+  Presence = 5, // 4000-6000 Hz
+  Brilliance = 6  // 6000-20000 Hz
 };
 
-enum class channel : unsigned
+enum class Channel : unsigned
 {
-  left = CHANNEL_LEFT,
-  right = CHANNEL_RIGHT,
-  average = 1234
+  Left = CHANNEL_LEFT,
+  Right = CHANNEL_RIGHT,
+  Average = 1234
 };
 
-struct audioPoint
+struct AudioPoint
 {
   float magnitude;
   float balance;
 
-  float getChannel(channel which) const
+  float getChannel(Channel which) const
   {
     switch (which)
     {
-    case channel::left:
+    case Channel::Left:
       return ((2 * magnitude) + balance) / 2;
-    case channel::right:
+    case Channel::Right:
       return ((2 * magnitude) - balance) / 2;
     default:
-    case channel::average:
+    case Channel::Average:
       return magnitude;
     }
   }
 
-  audioPoint operator+(const audioPoint& rhs) const { return { this->magnitude + rhs.magnitude, this->balance + rhs.balance }; }
-  audioPoint operator-(const audioPoint& rhs) const { return { this->magnitude - rhs.magnitude, this->balance - rhs.balance }; }
+  AudioPoint operator+(const AudioPoint& rhs) const { return { this->magnitude + rhs.magnitude, this->balance + rhs.balance }; }
+  AudioPoint operator-(const AudioPoint& rhs) const { return { this->magnitude - rhs.magnitude, this->balance - rhs.balance }; }
 
-  audioPoint() : magnitude(0.0f), balance(0.0f) {}
-  audioPoint(float magnitude, float balance) : magnitude(magnitude), balance(balance) {}
+  AudioPoint() : magnitude(0.0f), balance(0.0f) {}
+  AudioPoint(float magnitude, float balance) : magnitude(magnitude), balance(balance) {}
 };
 
 template<typename T>
-struct stereoPair
+struct StereoPair
 {
   T left;
   T right;
 };
 
 template<unsigned FFT_BINS, unsigned SAMPLE_RATE>
-struct binLabels
+struct BinLabels
 {
   double labels[FFT_BINS];
-  constexpr binLabels() : labels()
+  constexpr BinLabels() : labels()
   {
     for (auto i = 0; i != FFT_BINS; ++i)
       labels[i] = i * SAMPLE_RATE / FFT_BINS;
@@ -72,7 +72,7 @@ struct binLabels
 };
 
 template<unsigned FFT_BINS, unsigned SAMPLE_RATE>
-constexpr size_t getIndex(const binLabels<FFT_BINS, SAMPLE_RATE> labels, double upperBound)
+constexpr size_t getIndex(const BinLabels<FFT_BINS, SAMPLE_RATE> labels, double upperBound)
 {
   size_t maxIndex = 0;
   for (size_t i = 0; i != FFT_BINS; ++i)
@@ -81,17 +81,16 @@ constexpr size_t getIndex(const binLabels<FFT_BINS, SAMPLE_RATE> labels, double 
   return maxIndex;
 }
 
-class audioSystem
+class AudioSystem
 {
 public:
-  //static constexpr unsigned CHANNELS = 2;
   static constexpr unsigned SAMPLE_RATE = 44100;
   static constexpr unsigned MINIMUM_FREQUENCY = 20;
   static constexpr unsigned WINDOW_SIZE = SAMPLE_RATE / MINIMUM_FREQUENCY;
   static constexpr unsigned FFT_BINS = (WINDOW_SIZE / 2) + 1;
   static constexpr unsigned MAXIMUM_FREQUENCY = (FFT_BINS - 1) * SAMPLE_RATE / FFT_BINS;
 
-  static constexpr binLabels<audioSystem::FFT_BINS, audioSystem::SAMPLE_RATE> labels = binLabels<audioSystem::FFT_BINS, audioSystem::SAMPLE_RATE>();
+  static constexpr BinLabels<AudioSystem::FFT_BINS, AudioSystem::SAMPLE_RATE> labels = BinLabels<AudioSystem::FFT_BINS, AudioSystem::SAMPLE_RATE>();
 
   static constexpr size_t subBassIndex = getIndex(labels, 60);
   static constexpr size_t bassIndex = getIndex(labels, 250);
@@ -101,108 +100,108 @@ public:
   static constexpr size_t presenceIndex = getIndex(labels, 6000);
 };
 
-typedef std::array<audioPoint, audioSystem::FFT_BINS> fftSpectrumData;
-typedef stereoPair<std::array<float, audioSystem::WINDOW_SIZE> > audioSourceFrame;
-typedef stereoPair<std::vector<float> > audioProviderFrame;
-typedef stereoPair<float> stereoSample;
+typedef std::array<AudioPoint, AudioSystem::FFT_BINS> FFTSpectrumData;
+typedef StereoPair<std::array<float, AudioSystem::WINDOW_SIZE> > AudioSourceFrame;
+typedef StereoPair<std::vector<float> > AudioProviderFrame;
+typedef StereoPair<float> StereoSample;
 
-static inline constexpr size_t getStartIndex(spectrumRange range)
+static inline constexpr size_t getStartIndex(SpectrumRange range)
 {
   size_t val = 0;
   switch (range)
   {
-  case spectrumRange::subBass:
+  case SpectrumRange::SubBass:
     val = 0;
     break;
-  case spectrumRange::bass:
-    val = audioSystem::subBassIndex;
+  case SpectrumRange::Bass:
+    val = AudioSystem::subBassIndex;
     break;
-  case spectrumRange::lowMidrange:
-    val = audioSystem::bassIndex;
+  case SpectrumRange::LowMidrange:
+    val = AudioSystem::bassIndex;
     break;
-  case spectrumRange::midrange:
-    val = audioSystem::lowMidrangeIndex;
+  case SpectrumRange::Midrange:
+    val = AudioSystem::lowMidrangeIndex;
     break;
-  case spectrumRange::upperMidrange:
-    val = audioSystem::midrangeIndex;
+  case SpectrumRange::UpperMidrange:
+    val = AudioSystem::midrangeIndex;
     break;
-  case spectrumRange::presence:
-    val = audioSystem::upperMidrangeIndex;
+  case SpectrumRange::Presence:
+    val = AudioSystem::upperMidrangeIndex;
     break;
-  case spectrumRange::brilliance:
-    val = audioSystem::presenceIndex;
+  case SpectrumRange::Brilliance:
+    val = AudioSystem::presenceIndex;
     break;
   }
   return val;
 }
 
-static inline constexpr size_t getEndIndex(spectrumRange range)
+static inline constexpr size_t getEndIndex(SpectrumRange range)
 {
   size_t val = 0;
   switch (range)
   {
-  case spectrumRange::subBass:
-    val = audioSystem::subBassIndex;
+  case SpectrumRange::SubBass:
+    val = AudioSystem::subBassIndex;
     break;
-  case spectrumRange::bass:
-    val = audioSystem::bassIndex;
+  case SpectrumRange::Bass:
+    val = AudioSystem::bassIndex;
     break;
-  case spectrumRange::lowMidrange:
-    val = audioSystem::lowMidrangeIndex;
+  case SpectrumRange::LowMidrange:
+    val = AudioSystem::lowMidrangeIndex;
     break;
-  case spectrumRange::midrange:
-    val = audioSystem::midrangeIndex;
+  case SpectrumRange::Midrange:
+    val = AudioSystem::midrangeIndex;
     break;
-  case spectrumRange::upperMidrange:
-    val = audioSystem::upperMidrangeIndex;
+  case SpectrumRange::UpperMidrange:
+    val = AudioSystem::upperMidrangeIndex;
     break;
-  case spectrumRange::presence:
-    val = audioSystem::presenceIndex;
+  case SpectrumRange::Presence:
+    val = AudioSystem::presenceIndex;
     break;
-  case spectrumRange::brilliance:
-    val = audioSystem::FFT_BINS;
+  case SpectrumRange::Brilliance:
+    val = AudioSystem::FFT_BINS;
     break;
   }
   return val;
 }
 
-static inline constexpr size_t spectrumSize(spectrumRange range)
+static inline constexpr size_t spectrumSize(SpectrumRange range)
 {
   return getEndIndex(range) - getStartIndex(range);
 }
 
-static inline constexpr size_t spectrumSize(spectrumRange rangeBegin, spectrumRange rangeEnd)
+static inline constexpr size_t spectrumSize(SpectrumRange rangeBegin, SpectrumRange rangeEnd)
 {
   return getEndIndex(rangeEnd) - getStartIndex(rangeBegin);
 }
 
-static inline auto spectrumView(const fftSpectrumData& array, spectrumRange range)
+static inline auto spectrumView(const FFTSpectrumData& array, SpectrumRange range)
 {
   return array | ranges::views::slice(getStartIndex(range), getEndIndex(range));
 }
 
-static inline auto spectrumView(const fftSpectrumData& array, spectrumRange rangeBegin, spectrumRange rangeEnd)
+static inline auto spectrumView(const FFTSpectrumData& array, SpectrumRange rangeBegin, SpectrumRange rangeEnd)
 {
   return array | ranges::views::slice(getStartIndex(rangeBegin), getEndIndex(rangeEnd));
 }
 
-static inline float spectrumAverage(const fftSpectrumData& array, spectrumRange range, channel sampleChannel = channel::average)
+static inline float spectrumAverage(const FFTSpectrumData& array, SpectrumRange range, Channel sampleChannel = Channel::Average)
 {
   float sum = ranges::accumulate(
       spectrumView(array, range),
       0.0f,
-      [sampleChannel](const float a, const audioPoint& b){ return a + b.getChannel(sampleChannel); });
+      [sampleChannel](const float a, const AudioPoint& b){ return a + b.getChannel(sampleChannel); });
   float count = spectrumSize(range);
 
   return sum / count;
 }
 
-static inline float spectrumAverage(const fftSpectrumData& array, spectrumRange rangeBegin, spectrumRange rangeEnd, channel sampleChannel = channel::average)
+static inline float spectrumAverage(const FFTSpectrumData& array, SpectrumRange rangeBegin, SpectrumRange rangeEnd, Channel sampleChannel = Channel::Average)
 {
   float sum = ranges::accumulate(
       spectrumView(array, rangeBegin, rangeEnd),
       0.0f,
-      [sampleChannel](const float a, const audioPoint& b){ return a + b.getChannel(sampleChannel); });
+      [sampleChannel](const float a, const AudioPoint& b){ return a + b.getChannel(sampleChannel); });
   float count = spectrumSize(rangeBegin, rangeEnd);
 
   return sum / count;

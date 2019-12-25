@@ -8,34 +8,34 @@
 #include <range/v3/span.hpp>
 #include <range/v3/view/stride.hpp>
 
-namespace soundio
+namespace SoundIO
 {
-  class soundioException : public std::exception
+  class SoundIOException : public std::exception
   {
   public:
-    explicit soundioException(int err);
-    virtual ~soundioException();
+    explicit SoundIOException(int err);
+    virtual ~SoundIOException();
     virtual const char* what() const noexcept;
   private:
     int err;
   };
 
-  class outputDevice;
-  class inputDevice;
+  class OutputDevice;
+  class InputDevice;
 
-  class system
+  class System
   {
-    friend class outputDevice;
-    friend class inputDevice;
+    friend class OutputDevice;
+    friend class InputDevice;
   public:
-    system();
-    virtual ~system();
+    System();
+    virtual ~System();
 
-    system(const system&) = delete;
-    system& operator=(const system&) = delete;
+    System(const System&) = delete;
+    System& operator=(const System&) = delete;
 
-    system(system&&) = default;
-    system& operator=(system&&) = default;
+    System(System&&) = default;
+    System& operator=(System&&) = default;
 
     void waitEvents();
     void flushEvents();
@@ -44,59 +44,59 @@ namespace soundio
     SoundIo* obj;
   };
 
-  class outStream;
+  class OutStream;
 
-  class outputDevice
+  class OutputDevice
   {
-    friend class outStream;
+    friend class OutStream;
   public:
-    outputDevice(system& system);
-    virtual ~outputDevice();
+    OutputDevice(System& System);
+    virtual ~OutputDevice();
 
-    outputDevice(const outputDevice&) = delete;
-    outputDevice& operator=(const outputDevice&) = delete;
+    OutputDevice(const OutputDevice&) = delete;
+    OutputDevice& operator=(const OutputDevice&) = delete;
 
-    outputDevice(outputDevice&&) = default;
-    outputDevice& operator=(outputDevice&&) = default;
+    OutputDevice(OutputDevice&&) = default;
+    OutputDevice& operator=(OutputDevice&&) = default;
 
     const std::string getName() const;
   private:
     SoundIoDevice* obj;
   };
 
-  class inStream;
+  class InStream;
 
-  class inputDevice
+  class InputDevice
   {
-    friend class inStream;
+    friend class InStream;
   public:
-    inputDevice(system& system);
-    virtual ~inputDevice();
+    InputDevice(System& System);
+    virtual ~InputDevice();
 
-    inputDevice(const inputDevice&) = delete;
-    inputDevice& operator=(const inputDevice&) = delete;
+    InputDevice(const InputDevice&) = delete;
+    InputDevice& operator=(const InputDevice&) = delete;
 
-    inputDevice(inputDevice&&) = default;
-    inputDevice& operator=(inputDevice&&) = default;
+    InputDevice(InputDevice&&) = default;
+    InputDevice& operator=(InputDevice&&) = default;
 
     const std::string getName() const;
   private:
     SoundIoDevice* obj;
   };
 
-  class outStream
+  class OutStream
   {
   public:
-    typedef std::function<void(outStream&, int, int)> callback;
+    typedef std::function<void(OutStream&, int, int)> Callback;
 
-    outStream(outputDevice& device, const std::string& name, callback writeCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
-    virtual ~outStream();
+    OutStream(OutputDevice& device, const std::string& name, Callback writeCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
+    virtual ~OutStream();
 
-    outStream(const outStream&) = delete;
-    outStream& operator=(const outStream&) = delete;
+    OutStream(const OutStream&) = delete;
+    OutStream& operator=(const OutStream&) = delete;
 
-    outStream(outStream&&) = default;
-    outStream& operator=(outStream&&) = default;
+    OutStream(OutStream&&) = default;
+    OutStream& operator=(OutStream&&) = default;
 
     int getChannels() const;
     const std::string getName() const;
@@ -118,23 +118,23 @@ namespace soundio
     ranges::v3::span<SoundIoChannelArea> areas;
     int frameCount;
     std::string name;
-    callback writeCallback;
+    Callback writeCallback;
     SoundIoOutStream* obj;
   };
 
-  class inStream
+  class InStream
   {
   public:
-    typedef std::function<void(inStream&, int, int)> callback;
+    typedef std::function<void(InStream&, int, int)> Callback;
 
-    inStream(inputDevice& device, callback readCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
-    virtual ~inStream();
+    InStream(InputDevice& device, Callback readCallback, SoundIoFormat format = SoundIoFormatFloat32NE, int sampleRate = 44100);
+    virtual ~InStream();
 
-    inStream(const inStream&) = delete;
-    inStream& operator=(const inStream&) = delete;
+    InStream(const InStream&) = delete;
+    InStream& operator=(const InStream&) = delete;
 
-    inStream(inStream&&) = default;
-    inStream& operator=(inStream&&) = default;
+    InStream(InStream&&) = default;
+    InStream& operator=(InStream&&) = default;
 
     bool beginRead(int& requestedFrameCount);
     void endRead();
@@ -151,7 +151,7 @@ namespace soundio
   private:
     ranges::v3::span<SoundIoChannelArea> areas;
     int frameCount;
-    callback readCallback;
+    Callback readCallback;
     SoundIoInStream* obj;
   };
 };

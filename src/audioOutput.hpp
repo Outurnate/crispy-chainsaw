@@ -8,25 +8,24 @@
 #include <array>
 #include <chrono>
 
-class audioOutput
+class AudioOutput
 {
 public:
   // frames to return
-  typedef std::function<audioProviderFrame(int)> provideAudioCallback;
+  typedef std::function<AudioProviderFrame(int)> ProvideAudioCallback;
   // frame, latency
-  typedef std::function<void(const audioProviderFrame&,std::chrono::duration<double>)> playedAudioCallback;
+  typedef std::function<void(const AudioProviderFrame&,std::chrono::duration<double>)> PlayedAudioCallback;
 
-  audioOutput(soundio::system& system, provideAudioCallback providerCallback, playedAudioCallback playedCallback);
-  virtual ~audioOutput();
+  AudioOutput(SoundIO::System& system, ProvideAudioCallback providerCallback, PlayedAudioCallback playedCallback);
 
   void start();
 private:
-  void writeCallback(soundio::outStream& stream, int minFrames, int maxFrames);
+  void writeCallback(SoundIO::OutStream& stream, int minFrames, int maxFrames);
 
-  provideAudioCallback providerCallback;
-  playedAudioCallback playedCallback;
-  soundio::outputDevice device;
-  soundio::outStream stream;
+  ProvideAudioCallback providerCallback;
+  PlayedAudioCallback playedCallback;
+  SoundIO::OutputDevice device;
+  SoundIO::OutStream stream;
 };
 
 #endif

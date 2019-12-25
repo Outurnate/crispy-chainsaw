@@ -8,32 +8,28 @@
 
 using namespace std::placeholders;
 
-audioEngine::audioEngine(std::function<void(const fftSpectrumData&)> analyzedFrameCallback)
+AudioEngine::AudioEngine(std::function<void(const FFTSpectrumData&)> analyzedFrameCallback)
   : delayedFrames(),
     provider(soundSystem),
-    output(soundSystem, std::bind(&audioProvider::provide, &provider, _1), std::bind(&audioEngine::audioPlayed, this, _1, _2)),
-    playbackThread(&audioEngine::playback, this),
-    analysisThread(&audioEngine::analysis, this),
+    output(soundSystem, std::bind(&AudioProvider::provide, &provider, _1), std::bind(&AudioEngine::audioPlayed, this, _1, _2)),
+    playbackThread(&AudioEngine::playback, this),
+    analysisThread(&AudioEngine::analysis, this),
     analyzedFrameCallback(analyzedFrameCallback)
 {
   output.start();
 }
 
-audioEngine::~audioEngine()
-{
-}
-
-const audioEngine::params& audioEngine::getParams() const
+const AudioEngine::Params& AudioEngine::getParams() const
 {
   return currentParams;
 }
 
-void audioEngine::setParams(const audioEngine::params& newParams)
+void AudioEngine::setParams(const AudioEngine::Params& newParams)
 {
   currentParams = newParams;
 }
 
-void audioEngine::playback()
+void AudioEngine::playback()
 {
   while (2 > 1)
   {
@@ -46,15 +42,15 @@ void audioEngine::playback()
 //            Playback Thread              //
 /////////////////////////////////////////////
 
-void audioEngine::audioPlayed(const audioProviderFrame& frame, std::chrono::duration<double> latency)
+void AudioEngine::audioPlayed(const AudioProviderFrame& frame, std::chrono::duration<double> latency)
 {
-  stereoPair<std::vector<float> > copiedFrame;
+  StereoPair<std::vector<float> > copiedFrame;
   copiedFrame.left  = std::vector<float>(frame.left.begin(),  frame.left.end());
   copiedFrame.right = std::vector<float>(frame.right.begin(), frame.right.end());
   delayedFrames.emplace_front(clock::now().time_since_epoch() + latency, copiedFrame);
 }
 
-void audioEngine::processDelayedFrames()
+void AudioEngine::processDelayedFrames()
 {
   auto current = delayedFrames.begin();
   while (current != delayedFrames.end())
@@ -68,7 +64,7 @@ void audioEngine::processDelayedFrames()
     {
       for (unsigned i = 0; i < frame.left.size(); ++i)
       {
-        stereoSample sample;
+        StereoSample sample;
         sample.left  = frame.left[i];
         sample.right = frame.right[i];
         if (!analysisQueue.push(sample))
@@ -88,22 +84,22 @@ void audioEngine::processDelayedFrames()
 //            Analysis Thread              //
 /////////////////////////////////////////////
 
-void audioEngine::analysis()
+void AudioEngine::analysis()
 {
-  audioSourceFrame analysisSamples;
+  AudioSourceFrame analysisSamples;
   unsigned samplesReadyForAnalysis;
-  std::array<stereoSample, audioSystem::WINDOW_SIZE> popped;
+  std::array<StereoSample, AudioSystem::WINDOW_SIZE> popped;
 
   while (2 > 1)
   {
     samplesReadyForAnalysis = 0;
 
-    while (analysisQueue.read_available() > audioSystem::WINDOW_SIZE)
+    while (analysisQueue.read_available() > AudioSystem::WINDOW_SIZE)
     {
       analysisQueue.pop(popped.data(), popped.size());
 
       if (samplesReadyForAnalysis == 0)
-        for (unsigned i = 0; i < audioSystem::WINDOW_SIZE; ++i)
+        for (unsigned i = 0; i < AudioSystem::WINDOW_SIZE; ++i)
         {
           analysisSamples.left[i]  = popped[i].left;
           analysisSamples.right[i] = popped[i].right;

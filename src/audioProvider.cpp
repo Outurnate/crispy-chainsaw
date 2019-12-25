@@ -6,23 +6,21 @@
 
 using namespace std::placeholders;
 
-audioProvider::audioProvider(soundio::system& system)
+AudioProvider::AudioProvider(SoundIO::System& system)
   : device(system),
-    stream(device, std::bind(&audioProvider::readCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, audioSystem::SAMPLE_RATE)
+    stream(device, std::bind(&AudioProvider::readCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, AudioSystem::SAMPLE_RATE)
 {
   stream.start();
 }
 
-audioProvider::~audioProvider() {}
-
-audioProviderFrame audioProvider::provide(int frames)
+AudioProviderFrame AudioProvider::provide(int frames)
 {
-  audioProviderFrame result;
+  AudioProviderFrame result;
   result.left  = std::vector<float>(frames);
   result.right = std::vector<float>(frames);
   for (int i = 0; i < frames; ++i)
   {
-    stereoSample sample;
+    StereoSample sample;
     if (!readSamples.pop(sample))
     {
       sample.left = 0.0f;
@@ -35,7 +33,7 @@ audioProviderFrame audioProvider::provide(int frames)
   return result;
 }
 
-void audioProvider::readCallback(soundio::inStream& stream, int minFrames, int maxFrames)
+void AudioProvider::readCallback(SoundIO::InStream& stream, int minFrames, int maxFrames)
 {
   (void)minFrames;
 
@@ -49,7 +47,7 @@ void audioProvider::readCallback(soundio::inStream& stream, int minFrames, int m
     if (!framesRead)
       break;
 
-    std::vector<stereoSample> tempSamples(framesRead);
+    std::vector<StereoSample> tempSamples(framesRead);
 
     // fill tempSamples
     if (!success)

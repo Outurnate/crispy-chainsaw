@@ -25,18 +25,6 @@ private:
   void renderStaticStar(const glm::vec2& coord);
   static inline void resetStar(star& obj);
 
-  bgfx::ProgramHandle textures;
-  bgfx::ProgramHandle colors;
-  bgfx::ProgramHandle lights;
-  bgfx::VertexBufferHandle quadVBO;
-  bgfx::IndexBufferHandle quadEBO;
-  bgfx::VertexBufferHandle cubeVBO;
-  bgfx::IndexBufferHandle cubeEBO;
-  bgfx::TextureHandle spotTexture;
-  bgfx::TextureHandle pewTexture;
-  bgfx::UniformHandle s_texColor;
-  bgfx::UniformHandle blendColor;
-  bgfx::UniformHandle light0;
   std::array<star, 50> stars;
   std::array<glm::vec2, 500> staticStars;
 };
