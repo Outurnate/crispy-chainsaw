@@ -7,7 +7,6 @@ class warpScene : public scene
 {
 public:
   warpScene();
-  virtual ~warpScene();
 
   void update(double delta, float width, float height) override;
   void updateAudio(const fftSpectrumData& audioFrame) override;
@@ -28,6 +27,7 @@ private:
 
   bgfx::ProgramHandle textures;
   bgfx::ProgramHandle colors;
+  bgfx::ProgramHandle lights;
   bgfx::VertexBufferHandle quadVBO;
   bgfx::IndexBufferHandle quadEBO;
   bgfx::VertexBufferHandle cubeVBO;
@@ -36,8 +36,8 @@ private:
   bgfx::TextureHandle pewTexture;
   bgfx::UniformHandle s_texColor;
   bgfx::UniformHandle blendColor;
-  //std::unordered_map<spectrumRange, float>
-  std::array<star, 100> stars;
+  bgfx::UniformHandle light0;
+  std::array<star, 50> stars;
   std::array<glm::vec2, 500> staticStars;
 };
 

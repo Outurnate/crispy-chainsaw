@@ -27,11 +27,11 @@ struct positionColorVertex
 
 struct positionTextureVertex
 {
-  float m_x;
-  float m_y;
-  float m_z;
-  float m_u;
-  float m_v;
+  float x;
+  float y;
+  float z;
+  float u;
+  float v;
 
   static void init()
   {
@@ -45,14 +45,37 @@ struct positionTextureVertex
   static bgfx::VertexLayout msLayout;
 };
 
+struct positionColorNormalVertex
+{
+  float x;
+  float y;
+  float z;
+  uint32_t abgr;
+  float r;
+  float s;
+  float t;
+
+  static void init()
+  {
+    msLayout
+      .begin()
+      .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
+      .add(bgfx::Attrib::Color0,   4, bgfx::AttribType::Uint8, true)
+      .add(bgfx::Attrib::Normal,   3, bgfx::AttribType::Float)
+      .end();
+  }
+
+  static bgfx::VertexLayout msLayout;
+};
+
 struct positionColorTextureVertex
 {
-  float m_x;
-  float m_y;
-  float m_z;
+  float x;
+  float y;
+  float z;
   uint32_t abgr;
-  float m_u;
-  float m_v;
+  float u;
+  float v;
 
   static void init()
   {

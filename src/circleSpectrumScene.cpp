@@ -17,8 +17,8 @@ circleSpectrumScene::circleSpectrumScene()
     points(2 * (spectrumSize(spectrumRange::lowMidrange, spectrumRange::upperMidrange))),
     baseRadius(0.15f),
     circleWidth(0.01f),
-    vertexBuffer(2 * points/*, positionColorVertex { 0.0f, 0.0f, 0.0f, 0xff000000 }*/),
-    indexBuffer(6 * points/*, 0*/)
+    vertexBuffer(2 * points),
+    indexBuffer(6 * points)
 {
   program = resources.getShader("colors");
 
