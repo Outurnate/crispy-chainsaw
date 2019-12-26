@@ -1,4 +1,4 @@
-#include "soundIO.hpp"
+#include "SoundIO.hpp"
 
 #include <new>
 #include <fmt/format.h>

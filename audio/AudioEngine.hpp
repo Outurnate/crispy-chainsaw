@@ -9,10 +9,10 @@
 #include <chrono>
 #include <boost/lockfree/spsc_queue.hpp>
 
-#include "audioAnalyzer.hpp"
-#include "audioProvider.hpp"
-#include "audioOutput.hpp"
-#include "soundIO.hpp"
+#include "AudioAnalyzer.hpp"
+#include "AudioProvider.hpp"
+#include "AudioOutput.hpp"
+#include "SoundIO.hpp"
 
 class AudioEngine
 {

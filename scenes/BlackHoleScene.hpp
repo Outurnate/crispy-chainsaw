@@ -1,7 +1,7 @@
 #ifndef CIRCLESPECTRUMSCENE_HPP
 #define CIRCLESPECTRUMSCENE_HPP
 
-#include "sceneManager.hpp"
+#include "SceneManager.hpp"
 #include <vector>
 
 class BlackHoleScene : public Scene

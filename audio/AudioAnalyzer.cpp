@@ -1,10 +1,9 @@
-#include "audioAnalyzer.hpp"
-#include "audioEngine.hpp"
+#include "AudioAnalyzer.hpp"
+#include "AudioEngine.hpp"
 
 #include <fftwpp/Array.h>
 #include <fftwpp/fftw++.h>
-
-#include "math.hpp"
+#include "Math.hpp"
 
 // https://dlbeer.co.nz/articles/fftvis.html
 // https://stackoverflow.com/a/20584591

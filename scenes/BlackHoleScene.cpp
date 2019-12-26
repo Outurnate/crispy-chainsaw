@@ -1,4 +1,4 @@
-#include "circleSpectrumScene.hpp"
+#include "BlackHoleScene.hpp"
 
 #include <algorithm>
 #include <range/v3/algorithm/for_each.hpp>

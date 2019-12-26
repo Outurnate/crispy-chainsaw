@@ -1,7 +1,7 @@
 #ifndef AUDIOANALYZER_HPP
 #define AUDIOANALYZER_HPP
 
-#include "audioSystem.hpp"
+#include "AudioSystem.hpp"
 
 class AudioAnalyzer
 {

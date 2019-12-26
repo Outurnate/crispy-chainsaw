@@ -1,8 +1,8 @@
 #ifndef AUDIOPROVIDER_HPP
 #define AUDIOPROVIDER_HPP
 
-#include "audioSystem.hpp"
-#include "soundIO.hpp"
+#include "AudioSystem.hpp"
+#include "SoundIO.hpp"
 
 #include <boost/lockfree/spsc_queue.hpp>
 

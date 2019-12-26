@@ -1,8 +1,8 @@
 #ifndef AUDIOOUTPUT_HPP
 #define AUDIOOUTPUT_HPP
 
-#include "soundIO.hpp"
-#include "audioSystem.hpp"
+#include "SoundIO.hpp"
+#include "AudioSystem.hpp"
 
 #include <functional>
 #include <array>

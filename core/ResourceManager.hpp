@@ -1,8 +1,6 @@
 #ifndef RESOURCEMANAGER_HPP
 #define RESOURCEMANAGER_HPP
 
-#include "gfxUtils.hpp"
-
 #include <string>
 #include <unordered_map>
 

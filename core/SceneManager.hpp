@@ -6,8 +6,8 @@
 #include <boost/circular_buffer.hpp>
 #include <osgViewer/Viewer>
 
-#include "audioSystem.hpp"
-#include "audioEngine.hpp"
+#include "AudioSystem.hpp"
+#include "AudioEngine.hpp"
 
 class Scene
 {

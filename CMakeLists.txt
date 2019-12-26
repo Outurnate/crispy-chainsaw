@@ -26,19 +26,18 @@ add_library(fftwpp STATIC
 target_include_directories(fftwpp PUBLIC "${FFTWPP_SOURCES}")
 
 # our source
-set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
-               "${PROJECT_SOURCE_DIR}/src/sceneManager.cpp"
-#              "${PROJECT_SOURCE_DIR}/src/resourceManager.cpp"
-               "${PROJECT_SOURCE_DIR}/src/audioEngine.cpp"
-               "${PROJECT_SOURCE_DIR}/src/audioAnalyzer.cpp"
-               "${PROJECT_SOURCE_DIR}/src/circleSpectrumScene.cpp"
-#              "${PROJECT_SOURCE_DIR}/src/warpScene.cpp"
-               "${PROJECT_SOURCE_DIR}/src/soundIO.cpp"
-               "${PROJECT_SOURCE_DIR}/src/audioOutput.cpp"
-               "${PROJECT_SOURCE_DIR}/src/audioProvider.cpp")
+set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
+               "${PROJECT_SOURCE_DIR}/core/SceneManager.cpp"
+               "${PROJECT_SOURCE_DIR}/audio/AudioEngine.cpp"
+               "${PROJECT_SOURCE_DIR}/audio/AudioAnalyzer.cpp"
+               "${PROJECT_SOURCE_DIR}/audio/SoundIO.cpp"
+               "${PROJECT_SOURCE_DIR}/audio/AudioOutput.cpp"
+               "${PROJECT_SOURCE_DIR}/audio/AudioProvider.cpp"
+               "${PROJECT_SOURCE_DIR}/scenes/BlackHoleScene.cpp"
+#              "${PROJECT_SOURCE_DIR}/scenes/warpScene.cpp"
+)
 
 add_executable(Audio "${Audio_SRCS}")
-target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs/bigg/include" "${FFTWPP_SOURCES}" ${LIBSAMPLERATE_INCLUDE_DIR} ${BGFX_INCLUDE_DIR} ${BX_INCLUDE_DIR} ${BIMG_INCLUDE_DIR})
+target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/core" "${PROJECT_SOURCE_DIR}/audio" "${PROJECT_SOURCE_DIR}/scenes")
 target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain)
-#OgreHLMS OgreMain Codec_EXR OgreBites
 target_compile_options(Audio PRIVATE -Wall -Wextra)
