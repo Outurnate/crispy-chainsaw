@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.5)
 
 project(Audio)
 
@@ -15,7 +15,7 @@ find_package(libsoundio CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
-find_package(OpenGL REQUIRED)
+find_package(OGRE CONFIG REQUIRED)
 
 find_path(FFTWPP_SOURCES fftwpp/fftw++.h)
 add_library(fftwpp STATIC
@@ -39,5 +39,6 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/src/main.cpp"
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/libs/AudioFile" "${PROJECT_SOURCE_DIR}/libs/bigg/include" "${FFTWPP_SOURCES}" ${LIBSAMPLERATE_INCLUDE_DIR} ${BGFX_INCLUDE_DIR} ${BX_INCLUDE_DIR} ${BIMG_INCLUDE_DIR})
-target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} glfw ${BIMG_LIBRARY} ${BGFX_LIBRARY} ${BX_LIBRARY} fftwpp glfw glm fftw3 imgui::imgui glfw ${OPENGL_LIBRARIES} libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only)
+target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain)
+#OgreHLMS OgreMain Codec_EXR OgreBites
 target_compile_options(Audio PRIVATE -Wall -Wextra)
