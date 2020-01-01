@@ -9,10 +9,10 @@ class BlackHoleScene : public Scene
 public:
   BlackHoleScene();
 
-  const std::string getDisplayName() const;
-  const std::string getName() const;
-  void show();
-  void hide();
+  const std::string getDisplayName() const override;
+  const std::string getName() const override;
+  void show() override;
+  void hide() override;
   void update(double delta) override;
   void updateAudio(const FFTSpectrumData& audioFrame) override;
 private:

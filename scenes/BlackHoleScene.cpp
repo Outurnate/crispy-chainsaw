@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <range/v3/algorithm/for_each.hpp>
 
+#include "Math.hpp"
+
 BlackHoleScene::BlackHoleScene()
   : Scene(),
     points(2 * (spectrumSize(SpectrumRange::LowMidrange, SpectrumRange::UpperMidrange))),
@@ -34,6 +36,24 @@ BlackHoleScene::BlackHoleScene()
   //circleEBO = bgfx::createIndexBuffer(bgfx::makeRef(indexBuffer.data(), sizeof(uint16_t) * indexBuffer.size()));
 
   //bgfx::setDebug(BGFX_DEBUG_TEXT);
+}
+
+void BlackHoleScene::show()
+{
+}
+
+void BlackHoleScene::hide()
+{
+}
+
+const std::string BlackHoleScene::getDisplayName() const
+{
+  return "";
+}
+
+const std::string BlackHoleScene::getName() const
+{
+  return "";
 }
 
 void BlackHoleScene::updateAudio(const FFTSpectrumData& audioFrame)

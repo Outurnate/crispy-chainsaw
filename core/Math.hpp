@@ -1,6 +1,8 @@
 #ifndef MATH_HPP
 #define MATH_HPP
 
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <limits>
 
 template<typename T>

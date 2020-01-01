@@ -16,6 +16,7 @@ find_package(range-v3 CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(OGRE CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
 
 find_path(FFTWPP_SOURCES fftwpp/fftw++.h)
 add_library(fftwpp STATIC
@@ -28,6 +29,8 @@ target_include_directories(fftwpp PUBLIC "${FFTWPP_SOURCES}")
 # our source
 set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
                "${PROJECT_SOURCE_DIR}/core/SceneManager.cpp"
+               "${PROJECT_SOURCE_DIR}/core/ConfigurationManager.cpp"
+               "${PROJECT_SOURCE_DIR}/core/Application.cpp"
                "${PROJECT_SOURCE_DIR}/audio/AudioEngine.cpp"
                "${PROJECT_SOURCE_DIR}/audio/AudioAnalyzer.cpp"
                "${PROJECT_SOURCE_DIR}/audio/SoundIO.cpp"
@@ -39,5 +42,5 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/core" "${PROJECT_SOURCE_DIR}/audio" "${PROJECT_SOURCE_DIR}/scenes")
-target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain)
+target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain OgreBites)
 target_compile_options(Audio PRIVATE -Wall -Wextra)

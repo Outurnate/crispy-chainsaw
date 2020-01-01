@@ -6,8 +6,7 @@ Scene::Scene() {}
 Scene::~Scene() {}
 
 SceneManager::SceneManager()
-  : viewer(),
-    scenes(),
+  : scenes(),
     currentScene(0),
     frameDeltas(256, 0.0f),
     frameAudioMutex(),
@@ -17,13 +16,12 @@ SceneManager::SceneManager()
 
 void SceneManager::run()
 {
-  viewer.realize();
   setScene(0);
-  double lastTime = viewer.elapsedTime();
+  double lastTime = 0;//viewer.elapsedTime();
 
-  while (!viewer.done())
+  while (true)
   {
-    double now = viewer.elapsedTime();
+    double now = 0;//viewer.elapsedTime();
     double delta = now - lastTime;
 
     {
@@ -33,7 +31,7 @@ void SceneManager::run()
       scenes[currentScene]->update(delta);
     }
 
-    viewer.frame();
+    //viewer.frame();
     lastTime = now;
   }
 }

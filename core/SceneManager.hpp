@@ -4,7 +4,6 @@
 #include <vector>
 #include <mutex>
 #include <boost/circular_buffer.hpp>
-#include <osgViewer/Viewer>
 
 #include "AudioSystem.hpp"
 #include "AudioEngine.hpp"
@@ -35,7 +34,6 @@ private:
   void updateAudio(const FFTSpectrumData& audioFrame);
   void setScene(size_t index);
 
-  osgViewer::Viewer viewer;
   std::vector<std::unique_ptr<Scene> > scenes;
   size_t currentScene;
 
