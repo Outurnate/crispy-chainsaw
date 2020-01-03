@@ -42,5 +42,5 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/core" "${PROJECT_SOURCE_DIR}/audio" "${PROJECT_SOURCE_DIR}/scenes")
-target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain OgreBites)
+target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain OgreBites ${OGRE_RenderSystem_GL3Plus_LIBRARIES})
 target_compile_options(Audio PRIVATE -Wall -Wextra)

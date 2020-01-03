@@ -8,8 +8,10 @@
 
 int main()
 {
-  auto console = spdlog::stdout_color_mt("console");
-  spdlog::set_default_logger(console);
+  auto defaultLogger = spdlog::stdout_color_mt("default");
+  auto ogreLogger = spdlog::stdout_color_mt("ogre");
+  spdlog::set_default_logger(defaultLogger);
+  //spdlog::register_logger(ogreLogger);
 
   /*SceneManager scene;
   scene.registerScene<BlackHoleScene>();

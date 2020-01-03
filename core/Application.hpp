@@ -1,15 +1,16 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
-#include <OgreRoot.h>
 #include <memory>
+#include <OgreLog.h>
 
-class Application
+class Application : public Ogre::LogListener
 {
 public:
+  Application();
+
   void run();
-private:
-  std::unique_ptr<Ogre::Root> root;
+  void messageLogged(const Ogre::String& message, Ogre::LogMessageLevel lml, bool maskDebug, const Ogre::String& logName, bool& skipThisMessage) override;
 };
 
 #endif
