@@ -1,2 +1,2 @@
 # crispy-chainsaw
-Audio visualizer using libsoundio and bgfx
+Audio visualizer using libsoundio and ogre3d
