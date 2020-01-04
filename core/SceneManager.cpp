@@ -1,39 +1,41 @@
 #include "SceneManager.hpp"
 
+#include "BlackHoleScene.hpp"
+
 using namespace std::placeholders;
 
 Scene::Scene() {}
 Scene::~Scene() {}
 
 SceneManager::SceneManager()
-  : scenes(),
+  : optionSet(),
+    scenes(),
     currentScene(0),
     frameDeltas(256, 0.0f),
     frameAudioMutex(),
     engine(std::bind(&SceneManager::updateAudio, this, _1))
 {
+  registerScene<BlackHoleScene>();
+
+  for (auto& scene : scenes)
+  {
+    auto options = scene->getOptions();
+    for (auto& option : options)
+      optionSet.registerOption(option);
+  }
 }
 
-void SceneManager::run()
+ConfigurationManager::OptionSet& SceneManager::getOptionSet()
 {
-  setScene(0);
-  double lastTime = 0;//viewer.elapsedTime();
+  return optionSet;
+}
 
-  while (true)
-  {
-    double now = 0;//viewer.elapsedTime();
-    double delta = now - lastTime;
+void SceneManager::frame(double delta)
+{
+  std::lock_guard lock(frameAudioMutex);
 
-    {
-      std::lock_guard lock(frameAudioMutex);
-
-      frameDeltas.push_back(delta);
-      scenes[currentScene]->update(delta);
-    }
-
-    //viewer.frame();
-    lastTime = now;
-  }
+  frameDeltas.push_back(delta);
+  scenes[currentScene]->update(delta);
 }
 
 void SceneManager::setScene(size_t index)

@@ -13,6 +13,7 @@ BlackHoleScene::BlackHoleScene()
     vertexBuffer(2 * points),
     indexBuffer(6 * points)*/
 {
+  options.emplace_back("asdf", ConfigurationManager::OptionType::Real, 0.5);
   /*program = resources.getShader("colors");
 
   unsigned c = 0;
@@ -36,6 +37,11 @@ BlackHoleScene::BlackHoleScene()
   //circleEBO = bgfx::createIndexBuffer(bgfx::makeRef(indexBuffer.data(), sizeof(uint16_t) * indexBuffer.size()));
 
   //bgfx::setDebug(BGFX_DEBUG_TEXT);
+}
+
+ranges::v3::any_view<ConfigurationManager::Option&> BlackHoleScene::getOptions()
+{
+  return options;
 }
 
 void BlackHoleScene::show()

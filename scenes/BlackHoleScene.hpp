@@ -15,7 +15,9 @@ public:
   void hide() override;
   void update(double delta) override;
   void updateAudio(const FFTSpectrumData& audioFrame) override;
+  ranges::v3::any_view<ConfigurationManager::Option&> getOptions() override;
 private:
+  std::vector<ConfigurationManager::Option> options;
   unsigned points;
   float baseRadius;
   float circleWidth;

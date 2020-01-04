@@ -27,7 +27,10 @@ struct sceneManagerDeleter
 typedef std::unique_ptr<Ogre::SceneManager, sceneManagerDeleter> ScopedSceneManager;
 
 Application::Application()
+  : sceneManager(),
+    configurationManager(sceneManager.getOptionSet())
 {
+  configurationManager.flush();
 }
 
 void Application::messageLogged(const Ogre::String& message, Ogre::LogMessageLevel lml, bool maskDebug, const Ogre::String& logName, bool& skipThisMessage)
@@ -75,6 +78,8 @@ void Application::run()
   Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
   {
+    sceneManager.setScene(0);
+
     ScopedSceneManager sceneManager(root.createSceneManager("DefaultSceneManager"));
 
     if (Ogre::RTShader::ShaderGenerator::initialize())

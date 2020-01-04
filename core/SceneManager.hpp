@@ -4,9 +4,11 @@
 #include <vector>
 #include <mutex>
 #include <boost/circular_buffer.hpp>
+#include <range/v3/view/any_view.hpp>
 
 #include "AudioSystem.hpp"
 #include "AudioEngine.hpp"
+#include "ConfigurationManager.hpp"
 
 class Scene
 {
@@ -20,6 +22,7 @@ public:
   virtual void hide() = 0;
   virtual void update(double delta) = 0;
   virtual void updateAudio(const FFTSpectrumData& audioFrame) = 0;
+  virtual ranges::v3::any_view<ConfigurationManager::Option&> getOptions() = 0;
 };
 
 class SceneManager
@@ -27,13 +30,15 @@ class SceneManager
 public:
   SceneManager();
 
+  void frame(double delta);
+  ConfigurationManager::OptionSet& getOptionSet();
+  void setScene(size_t index);
+private:
   template<typename T>
   void registerScene() { scenes.emplace_back(new T()); }
-  void run();
-private:
   void updateAudio(const FFTSpectrumData& audioFrame);
-  void setScene(size_t index);
 
+  ConfigurationManager::OptionSet optionSet;
   std::vector<std::unique_ptr<Scene> > scenes;
   size_t currentScene;
 
