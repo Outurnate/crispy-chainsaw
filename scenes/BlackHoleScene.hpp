@@ -7,23 +7,20 @@
 class BlackHoleScene : public Scene
 {
 public:
-  BlackHoleScene();
+  BlackHoleScene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet);
 
-  const std::string getDisplayName() const override;
-  const std::string getName() const override;
-  void show() override;
-  void hide() override;
   void update(double delta) override;
   void updateAudio(const FFTSpectrumData& audioFrame) override;
-  ranges::v3::any_view<ConfigurationManager::Option&> getOptions() override;
+  void initialize() override;
+  Ogre::Camera& getCamera() override;
 private:
-  std::vector<ConfigurationManager::Option> options;
+  Ogre::Camera* camera;
   unsigned points;
   float baseRadius;
   float circleWidth;
-  /*std::vector<positionColorVertex> vertexBuffer;
+  std::vector<positionColorVertex> vertexBuffer;
   std::vector<uint16_t> indexBuffer;
-  bgfx::ProgramHandle program;
+  /*bgfx::ProgramHandle program;
   bgfx::DynamicVertexBufferHandle circleVBO;
   bgfx::IndexBufferHandle circleEBO;*/
 };

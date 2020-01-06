@@ -18,22 +18,11 @@ ConfigurationManager::ConfigurationManager(ConfigurationManager::OptionSet optio
     dirty(false)
 {
   for (auto& optionDefinition : current.options)
-  {
-    switch(optionDefinition.second.optionType)
+    std::visit([&optionDefinition, this](auto&& arg)
     {
-    case OptionType::Bool:
-      optionDefinition.second.value = configFile->get_as<bool>(optionDefinition.first).value_or(std::get<bool>(optionDefinition.second.defaultValue));
-      break;
-
-    case OptionType::String:
-      optionDefinition.second.value = configFile->get_as<std::string>(optionDefinition.first).value_or(std::get<std::string>(optionDefinition.second.defaultValue));
-      break;
-
-    case OptionType::Real:
-      optionDefinition.second.value = configFile->get_as<double>(optionDefinition.first).value_or(std::get<double>(optionDefinition.second.defaultValue));
-      break;
-    }
-  }
+      using T = std::decay_t<decltype(arg)>;
+      optionDefinition.second.value = configFile->get_as<T>(optionDefinition.first).value_or(arg);
+    }, optionDefinition.second.defaultValue);
 }
 
 void ConfigurationManager::reset(const std::string& name)
@@ -46,22 +35,10 @@ void ConfigurationManager::flush()
   std::shared_ptr<cpptoml::table> newConfig = cpptoml::make_table();
 
   for (auto& optionDefinition : current.options)
-  {
-    switch(optionDefinition.second.optionType)
+    std::visit([&optionDefinition, &newConfig, this](auto&& arg)
     {
-    case OptionType::Bool:
-      newConfig->insert(optionDefinition.first, std::get<bool>(optionDefinition.second.value));
-      break;
-
-    case OptionType::String:
-      newConfig->insert(optionDefinition.first, std::get<std::string>(optionDefinition.second.value));
-      break;
-
-    case OptionType::Real:
-      newConfig->insert(optionDefinition.first, std::get<double>(optionDefinition.second.value));
-      break;
-    }
-  }
+      newConfig->insert(optionDefinition.first, arg);
+    }, optionDefinition.second.value);
 
   std::ofstream configStream;
   configStream.open(locateConfigFile());

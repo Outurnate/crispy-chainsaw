@@ -5,16 +5,15 @@
 
 #include "Math.hpp"
 
-BlackHoleScene::BlackHoleScene()
-  : Scene(),
+BlackHoleScene::BlackHoleScene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet)
+  : Scene(displayName, name, optionSet),
     points(2 * (spectrumSize(SpectrumRange::LowMidrange, SpectrumRange::UpperMidrange))),
     baseRadius(0.15f),
-    circleWidth(0.01f)/*,
+    circleWidth(0.01f),
     vertexBuffer(2 * points),
-    indexBuffer(6 * points)*/
+    indexBuffer(6 * points)
 {
-  options.emplace_back("asdf", ConfigurationManager::OptionType::Real, 0.5);
-  /*program = resources.getShader("colors");
+  optionSet.registerOption(ConfigurationManager::Option("asdf", 0.5));
 
   unsigned c = 0;
   for (unsigned i = 0; i < points; ++i)
@@ -31,7 +30,7 @@ BlackHoleScene::BlackHoleScene()
     indexBuffer[c++] = bottomLeft;
     indexBuffer[c++] = bottomRight;
     indexBuffer[c++] = topRight;
-  }*/
+  }
 
   //circleVBO = bgfx::createDynamicVertexBuffer(bgfx::makeRef(vertexBuffer.data(), sizeof(positionColorVertex) * vertexBuffer.size()), positionColorVertex::msLayout);
   //circleEBO = bgfx::createIndexBuffer(bgfx::makeRef(indexBuffer.data(), sizeof(uint16_t) * indexBuffer.size()));
@@ -39,27 +38,14 @@ BlackHoleScene::BlackHoleScene()
   //bgfx::setDebug(BGFX_DEBUG_TEXT);
 }
 
-ranges::v3::any_view<ConfigurationManager::Option&> BlackHoleScene::getOptions()
+Ogre::Camera& BlackHoleScene::getCamera()
 {
-  return options;
+  return *camera;
 }
 
-void BlackHoleScene::show()
+void BlackHoleScene::initialize()
 {
-}
-
-void BlackHoleScene::hide()
-{
-}
-
-const std::string BlackHoleScene::getDisplayName() const
-{
-  return "";
-}
-
-const std::string BlackHoleScene::getName() const
-{
-  return "";
+  camera = sceneManager->createCamera("Camera");
 }
 
 void BlackHoleScene::updateAudio(const FFTSpectrumData& audioFrame)

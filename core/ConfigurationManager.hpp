@@ -8,34 +8,28 @@
 class ConfigurationManager
 {
 public:
-  enum class OptionType
-  {
-    Real,
-    String,
-    Bool
-  };
-
   typedef std::variant<double, std::string, bool> OptionValue;
 
   struct Option
   {
     std::string name;
-    OptionType optionType;
     OptionValue defaultValue;
     OptionValue value;
 
-    Option(const std::string& name, OptionType optionType, const OptionValue& defaultValue)
+    Option(const std::string& name, const OptionValue& defaultValue)
       : name(name),
-        optionType(optionType),
         defaultValue(defaultValue),
         value(defaultValue) {}
   };
 
   struct OptionSet
   {
-    std::map<std::string, Option> options;
+    friend class ConfigurationManager;
 
+  public:
     void registerOption(Option option);
+  private:
+    std::map<std::string, Option> options;
   };
 
   ConfigurationManager(OptionSet options);

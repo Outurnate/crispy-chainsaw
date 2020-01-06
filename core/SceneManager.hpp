@@ -5,6 +5,10 @@
 #include <mutex>
 #include <boost/circular_buffer.hpp>
 #include <range/v3/view/any_view.hpp>
+#include <OgreRoot.h>
+#include <OgreViewport.h>
+#include <OgreSceneManager.h>
+#include <OgreCamera.h>
 
 #include "AudioSystem.hpp"
 #include "AudioEngine.hpp"
@@ -13,16 +17,19 @@
 class Scene
 {
 public:
-  Scene();
+  Scene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet);
   virtual ~Scene();
 
-  virtual const std::string getDisplayName() const = 0;
-  virtual const std::string getName() const = 0;
-  virtual void show() = 0;
-  virtual void hide() = 0;
   virtual void update(double delta) = 0;
   virtual void updateAudio(const FFTSpectrumData& audioFrame) = 0;
-  virtual ranges::v3::any_view<ConfigurationManager::Option&> getOptions() = 0;
+  virtual void initialize() = 0;
+  virtual Ogre::Camera& getCamera() = 0;
+
+  void setSceneManager(Ogre::SceneManager& sceneManager);
+
+  const std::string displayName, name;
+protected:
+  Ogre::SceneManager* sceneManager;
 };
 
 class SceneManager
@@ -33,12 +40,15 @@ public:
   void frame(double delta);
   ConfigurationManager::OptionSet& getOptionSet();
   void setScene(size_t index);
+  void setRoot(Ogre::Root& root, Ogre::Viewport& viewport);
 private:
   template<typename T>
-  void registerScene() { scenes.emplace_back(new T()); }
+  void registerScene(const std::string& displayName, const std::string& name) { scenes.emplace_back(new T(displayName, name, optionSet)); }
   void updateAudio(const FFTSpectrumData& audioFrame);
 
   ConfigurationManager::OptionSet optionSet;
+  Ogre::Root* root;
+  Ogre::Viewport* viewport;
   std::vector<std::unique_ptr<Scene> > scenes;
   size_t currentScene;
 

@@ -8,23 +8,10 @@
 #include <OgreSceneManager.h>
 #include <OgreCamera.h>
 #include <OgreViewport.h>
-#include <OgreEntity.h>
 #include <OgreSceneNode.h>
 #include <OgreGL3PlusPlugin.h>
 #include <OgreShaderGenerator.h>
-#include <OgreMaterialManager.h>
-#include <OgreSGTechniqueResolverListener.h>
 #include <Bites/OgreWindowEventUtilities.h>
-
-struct sceneManagerDeleter
-{
-  void operator()(Ogre::SceneManager* sceneManager) const
-  {
-    Ogre::Root::getSingleton().destroySceneManager(sceneManager);
-  }
-};
-
-typedef std::unique_ptr<Ogre::SceneManager, sceneManagerDeleter> ScopedSceneManager;
 
 Application::Application()
   : sceneManager(),
@@ -77,56 +64,26 @@ void Application::run()
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/HLSL_Cg", "FileSystem");
   Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
+  Ogre::SceneManager& nullSceneManager = *root.createSceneManager("DefaultSceneManager");
+  Ogre::Camera& nullCamera = *nullSceneManager.createCamera("NullCamera");
+  Ogre::Viewport& viewport = *window.addViewport(&nullCamera);
+  Ogre::SceneNode& cameraNode = *nullSceneManager.getRootSceneNode()->createChildSceneNode();
+
+  viewport.setBackgroundColour(Ogre::ColourValue(0, 0, 0));
+  cameraNode.attachObject(&nullCamera);
+
+  sceneManager.setRoot(root, viewport);
+  sceneManager.setScene(0);
+
+  while(true)
   {
-    sceneManager.setScene(0);
+    Ogre::WindowEventUtilities::messagePump();
 
-    ScopedSceneManager sceneManager(root.createSceneManager("DefaultSceneManager"));
+    if(window.isClosed()) return;// false;
 
-    if (Ogre::RTShader::ShaderGenerator::initialize())
-    {
-        Ogre::RTShader::ShaderGenerator::getSingletonPtr()->addSceneManager(sceneManager.get());
-        Ogre::RTShader::ShaderGenerator::getSingletonPtr()->setShaderCachePath("");
+    if(!root.renderOneFrame()) return;// false;
 
-        Ogre::MaterialManager::getSingleton().addListener(new OgreBites::SGTechniqueResolverListener(Ogre::RTShader::ShaderGenerator::getSingletonPtr()));
-    }
-    else
-    {
-      spdlog::get("ogre")->critical("Failed to initialize ShaderGenerator");
-      return;
-    }
-
-    sceneManager->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
-
-    Ogre::SceneNode& cameraNode = *sceneManager->getRootSceneNode()->createChildSceneNode();
-    Ogre::Camera& camera = *sceneManager->createCamera("Main");
-    Ogre::Viewport& viewport = *window.addViewport(&camera);
-
-    viewport.setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-    camera.setNearClipDistance(5);
-    camera.setAspectRatio(Ogre::Real(viewport.getActualWidth()) / Ogre::Real(viewport.getActualHeight()));
-    cameraNode.setPosition(0, 0, 80);
-    cameraNode.lookAt(Ogre::Vector3(0, 0, -300), Ogre::Node::TS_WORLD, Ogre::Vector3::NEGATIVE_UNIT_Z );
-    cameraNode.attachObject(&camera);
-
-    Ogre::SceneNode& ogreNode = *sceneManager->getRootSceneNode()->createChildSceneNode();
-    Ogre::Entity& ogreEntity = *sceneManager->createEntity("ogrehead.mesh");
-
-    ogreNode.attachObject(&ogreEntity);
-
-    Ogre::SceneNode& lightNode = *sceneManager->getRootSceneNode()->createChildSceneNode();
-    Ogre::Light& light = *sceneManager->createLight("MainLight");
-
-    lightNode.setPosition(20, 80, 50);
-    lightNode.attachObject(&light);
-
-    while(true)
-    {
-      Ogre::WindowEventUtilities::messagePump();
-
-      if(window.isClosed()) return;// false;
-
-      if(!root.renderOneFrame()) return;// false;
-      window.windowMovedOrResized(); // TODO THIS BAD
-    }
+    sceneManager.frame();
+    window.windowMovedOrResized(); // TODO THIS BAD
   }
 }

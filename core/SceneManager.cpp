@@ -1,11 +1,24 @@
 #include "SceneManager.hpp"
 
+#include <spdlog/spdlog.h>
+#include <OgreShaderGenerator.h>
+#include <OgreMaterialManager.h>
+#include <OgreSGTechniqueResolverListener.h>
+
 #include "BlackHoleScene.hpp"
 
 using namespace std::placeholders;
 
-Scene::Scene() {}
+Scene::Scene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet)
+  : displayName(displayName),
+    name(name) { (void)optionSet; }
 Scene::~Scene() {}
+
+void Scene::setSceneManager(Ogre::SceneManager& sceneManager)
+{
+  this->sceneManager = &sceneManager;
+  this->initialize();
+}
 
 SceneManager::SceneManager()
   : optionSet(),
@@ -15,14 +28,7 @@ SceneManager::SceneManager()
     frameAudioMutex(),
     engine(std::bind(&SceneManager::updateAudio, this, _1))
 {
-  registerScene<BlackHoleScene>();
-
-  for (auto& scene : scenes)
-  {
-    auto options = scene->getOptions();
-    for (auto& option : options)
-      optionSet.registerOption(option);
-  }
+  registerScene<BlackHoleScene>("Black Hole", "blackhole");
 }
 
 ConfigurationManager::OptionSet& SceneManager::getOptionSet()
@@ -40,9 +46,33 @@ void SceneManager::frame(double delta)
 
 void SceneManager::setScene(size_t index)
 {
-  scenes[currentScene]->hide();
   currentScene = index;
-  scenes[currentScene]->show();
+  viewport->setCamera(&scenes[currentScene]->getCamera());
+}
+
+void SceneManager::setRoot(Ogre::Root& root, Ogre::Viewport& viewport)
+{
+  this->root = &root;
+  this->viewport = &viewport;
+
+  if (Ogre::RTShader::ShaderGenerator::initialize())
+  {
+    Ogre::RTShader::ShaderGenerator::getSingletonPtr()->setShaderCachePath("");
+    Ogre::MaterialManager::getSingleton().addListener(new OgreBites::SGTechniqueResolverListener(Ogre::RTShader::ShaderGenerator::getSingletonPtr()));
+  }
+  else
+  {
+    spdlog::get("ogre")->critical("Failed to initialize ShaderGenerator");
+    return;
+  }
+
+  for (auto& scene : scenes)
+  {
+    Ogre::SceneManager& sceneManager = *root.createSceneManager("DefaultSceneManager");
+    Ogre::RTShader::ShaderGenerator::getSingletonPtr()->addSceneManager(&sceneManager);
+
+    scene->setSceneManager(sceneManager);
+  }
 }
 
 void SceneManager::updateAudio(const FFTSpectrumData& frame)
