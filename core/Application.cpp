@@ -83,7 +83,7 @@ void Application::run()
 
     if(!root.renderOneFrame()) return;// false;
 
-    sceneManager.frame();
+    sceneManager.frame(42); // TODO THIS BAD
     window.windowMovedOrResized(); // TODO THIS BAD
   }
 }

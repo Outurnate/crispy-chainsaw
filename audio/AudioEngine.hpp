@@ -29,6 +29,7 @@ public:
 
   const Params& getParams() const;
   void setParams(const Params& newParams);
+  void start();
 private:
   typedef std::chrono::steady_clock clock;
 

@@ -12,10 +12,17 @@ AudioEngine::AudioEngine(std::function<void(const FFTSpectrumData&)> analyzedFra
   : delayedFrames(),
     provider(soundSystem),
     output(soundSystem, std::bind(&AudioProvider::provide, &provider, _1), std::bind(&AudioEngine::audioPlayed, this, _1, _2)),
-    playbackThread(&AudioEngine::playback, this),
-    analysisThread(&AudioEngine::analysis, this),
+    playbackThread(),
+    analysisThread(),
     analyzedFrameCallback(analyzedFrameCallback)
 {
+}
+
+void AudioEngine::start()
+{
+  playbackThread = std::thread(&AudioEngine::playback, this);
+  analysisThread = std::thread(&AudioEngine::analysis, this);
+  provider.start();
   output.start();
 }
 

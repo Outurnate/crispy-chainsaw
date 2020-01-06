@@ -11,6 +11,7 @@ class AudioProvider
 public:
   AudioProvider(SoundIO::System& system);
 
+  void start();
   AudioProviderFrame provide(int frames);
 private:
   void readCallback(SoundIO::InStream& stream, int minFrames, int maxFrames);

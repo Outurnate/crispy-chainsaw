@@ -3,6 +3,7 @@
 
 #include "SceneManager.hpp"
 #include <vector>
+#include <OgreManualObject.h>
 
 class BlackHoleScene : public Scene
 {
@@ -15,14 +16,10 @@ public:
   Ogre::Camera& getCamera() override;
 private:
   Ogre::Camera* camera;
+  Ogre::ManualObject* blackHoleMesh;
   unsigned points;
   float baseRadius;
   float circleWidth;
-  std::vector<positionColorVertex> vertexBuffer;
-  std::vector<uint16_t> indexBuffer;
-  /*bgfx::ProgramHandle program;
-  bgfx::DynamicVertexBufferHandle circleVBO;
-  bgfx::IndexBufferHandle circleEBO;*/
 };
 
 #endif

@@ -73,6 +73,8 @@ void SceneManager::setRoot(Ogre::Root& root, Ogre::Viewport& viewport)
 
     scene->setSceneManager(sceneManager);
   }
+
+  engine.start();
 }
 
 void SceneManager::updateAudio(const FFTSpectrumData& frame)

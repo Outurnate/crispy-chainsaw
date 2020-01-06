@@ -10,6 +10,10 @@ AudioProvider::AudioProvider(SoundIO::System& system)
   : device(system),
     stream(device, std::bind(&AudioProvider::readCallback, this, _1, _2, _3), SoundIoFormatFloat32NE, AudioSystem::SAMPLE_RATE)
 {
+}
+
+void AudioProvider::start()
+{
   stream.start();
 }
 
