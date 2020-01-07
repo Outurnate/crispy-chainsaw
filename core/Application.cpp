@@ -43,6 +43,12 @@ void Application::messageLogged(const Ogre::String& message, Ogre::LogMessageLev
   }
 }
 
+bool Application::frameStarted(const Ogre::FrameEvent& event)
+{
+  sceneManager.frame(42); // TODO THIS BAD
+  return true;
+}
+
 void Application::run()
 {
   Ogre::LogManager log;
@@ -50,6 +56,8 @@ void Application::run()
   log.getDefaultLog()->addListener(this);
 
   Ogre::Root root("", "", "");
+
+  root.addFrameListener(this);
 
   Ogre::GL3PlusPlugin gl3plus;
   root.installPlugin(&gl3plus);
@@ -64,16 +72,20 @@ void Application::run()
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/HLSL_Cg", "FileSystem");
   Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
-  Ogre::SceneManager& nullSceneManager = *root.createSceneManager("DefaultSceneManager");
-  Ogre::Camera& nullCamera = *nullSceneManager.createCamera("NullCamera");
-  Ogre::Viewport& viewport = *window.addViewport(&nullCamera);
-  Ogre::SceneNode& cameraNode = *nullSceneManager.getRootSceneNode()->createChildSceneNode();
+  {
+    Ogre::SceneManager& nullSceneManager = *root.createSceneManager("DefaultSceneManager");
+    Ogre::Camera& nullCamera = *nullSceneManager.createCamera("NullCamera");
+    Ogre::Viewport& viewport = *window.addViewport(&nullCamera);
+    Ogre::SceneNode& cameraNode = *nullSceneManager.getRootSceneNode()->createChildSceneNode();
 
-  viewport.setBackgroundColour(Ogre::ColourValue(0, 0, 0));
-  cameraNode.attachObject(&nullCamera);
+    viewport.setBackgroundColour(Ogre::ColourValue(0, 0, 0));
+    cameraNode.attachObject(&nullCamera);
 
-  sceneManager.setRoot(root, viewport);
-  sceneManager.setScene(0);
+    sceneManager.setRoot(root, viewport);
+    sceneManager.setScene(0);
+
+    root.destroySceneManager(&nullSceneManager);
+  }
 
   while(true)
   {
@@ -83,7 +95,6 @@ void Application::run()
 
     if(!root.renderOneFrame()) return;// false;
 
-    sceneManager.frame(42); // TODO THIS BAD
-    window.windowMovedOrResized(); // TODO THIS BAD
+    window.windowMovedOrResized(); sceneManager.notifyResize(); // TODO THIS BAD
   }
 }

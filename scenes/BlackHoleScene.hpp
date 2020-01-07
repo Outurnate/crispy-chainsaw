@@ -18,6 +18,7 @@ private:
   Ogre::Camera* camera;
   Ogre::ManualObject* blackHoleMesh;
   unsigned points;
+  std::vector<float> audioData;
   float baseRadius;
   float circleWidth;
 };

@@ -41,6 +41,7 @@ public:
   ConfigurationManager::OptionSet& getOptionSet();
   void setScene(size_t index);
   void setRoot(Ogre::Root& root, Ogre::Viewport& viewport);
+  void notifyResize();
 private:
   template<typename T>
   void registerScene(const std::string& displayName, const std::string& name) { scenes.emplace_back(new T(displayName, name, optionSet)); }

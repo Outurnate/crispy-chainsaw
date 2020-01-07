@@ -48,12 +48,15 @@ void SceneManager::setScene(size_t index)
 {
   currentScene = index;
   viewport->setCamera(&scenes[currentScene]->getCamera());
+  notifyResize();
 }
 
 void SceneManager::setRoot(Ogre::Root& root, Ogre::Viewport& viewport)
 {
   this->root = &root;
   this->viewport = &viewport;
+
+  viewport.setBackgroundColour(Ogre::ColourValue(0, 0, 0));
 
   if (Ogre::RTShader::ShaderGenerator::initialize())
   {
@@ -82,4 +85,9 @@ void SceneManager::updateAudio(const FFTSpectrumData& frame)
   std::lock_guard lock(frameAudioMutex);
 
   scenes[currentScene]->updateAudio(frame);
+}
+
+void SceneManager::notifyResize()
+{
+  viewport->getCamera()->setAspectRatio(Ogre::Real(viewport->getActualWidth() / viewport->getActualHeight()));
 }
