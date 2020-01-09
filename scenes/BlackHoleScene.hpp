@@ -16,7 +16,7 @@ public:
   Ogre::Camera& getCamera() override;
 private:
   Ogre::Camera* camera;
-  Ogre::ManualObject* blackHoleMesh;
+  std::array<Ogre::ManualObject*, 3> blackHoleMeshes;
   unsigned points;
   std::vector<float> audioData;
   float baseRadius;

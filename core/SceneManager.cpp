@@ -89,5 +89,6 @@ void SceneManager::updateAudio(const FFTSpectrumData& frame)
 
 void SceneManager::notifyResize()
 {
-  viewport->getCamera()->setAspectRatio(Ogre::Real(viewport->getActualWidth() / viewport->getActualHeight()));
+  //viewport->getCamera()->setAspectRatio(Ogre::Real(viewport->getActualWidth() / viewport->getActualHeight()));
+  viewport->getCamera()->setAspectRatio(Ogre::Real(1920)/Ogre::Real(1080));
 }

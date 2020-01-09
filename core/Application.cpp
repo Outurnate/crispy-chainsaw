@@ -62,11 +62,17 @@ void Application::run()
   Ogre::GL3PlusPlugin gl3plus;
   root.installPlugin(&gl3plus);
   root.setRenderSystem(root.getRenderSystemByName("OpenGL 3+ Rendering Subsystem"));
+  root.initialise(false);
 
-  Ogre::RenderWindow& window = *root.initialise(true, "Death by cold fries");
+  Ogre::NameValuePairList params
+  {
+    { "FSAA", "16" }
+  };
+  Ogre::RenderWindow& window = *root.createRenderWindow("Death by cold fries", 640, 480, false, &params);
 
   Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(".", "FileSystem");
+  //Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./assets/resources.zip", "Zip");
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib", "FileSystem");
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/GLSL", "FileSystem");
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/HLSL_Cg", "FileSystem");

@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+add_subdirectory("${PROJECT_SOURCE_DIR}/assets")
+
 # vcpkg cmake
 find_package(Threads REQUIRED)
 find_package(FFTW3 CONFIG REQUIRED)

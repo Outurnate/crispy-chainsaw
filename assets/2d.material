@@ -1,0 +1,14 @@
+material 2DAmbientOnly
+{
+  technique
+  {
+    pass
+    {
+      lighting off
+      ambient vertexcolour
+      scene_blend alpha_blend
+      depth_write off
+      depth_check on
+    }
+  }
+}
