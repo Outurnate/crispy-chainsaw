@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package cfs;
+
+service ConfigurationServer
+{
+  rpc ListSettings(Empty) returns (stream SettingDescription) {}
+//  rpc GetDetails(SettingDescription) returns (SettingDetails) {}
+//  rpc ValidateValue(SettingValue) returns (Result) {}
+//  rpc SetSetting(SettingValue) returns (Result) {}
+//  rpc ValidValues(SettingDescription) returns (stream SettingValue) {}
+}
+
+enum SettingType
+{
+  INTEGER = 0;
+  REAL = 1;
+  BOOL = 2;
+  STRING = 3;
+}
+
+message Empty
+{
+  string black = 1;
+}
+
+message SettingDescription
+{
+  string name = 1;
+}
+
+message SettingDetails
+{
+  SettingType type = 1;
+}
+
+message SettingValue
+{
+  string name = 1;
+  oneof value
+  {
+    int32 intValue = 2;
+    double realValue = 3;
+    bool boolValue = 4;
+    string stringValue = 5;
+  }
+}
+
+message Result
+{
+  bool success = 1;
+}

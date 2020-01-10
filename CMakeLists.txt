@@ -7,26 +7,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-add_subdirectory("${PROJECT_SOURCE_DIR}/assets")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # vcpkg cmake
 find_package(Threads REQUIRED)
-find_package(FFTW3 CONFIG REQUIRED)
+find_package(FFTW3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS)
-find_package(libsoundio CONFIG REQUIRED)
-find_package(range-v3 CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(fmt CONFIG REQUIRED)
-find_package(OGRE CONFIG REQUIRED)
+find_package(libsoundio REQUIRED)
+#find_package(range-v3 REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
+find_package(OGRE REQUIRED)
 find_package(ZLIB REQUIRED)
+find_package(gRPC REQUIRED)
 
-find_path(FFTWPP_SOURCES fftwpp/fftw++.h)
-add_library(fftwpp STATIC
-            "${FFTWPP_SOURCES}/fftwpp/Array.cc"
-            "${FFTWPP_SOURCES}/fftwpp/Complex.cc"
-            "${FFTWPP_SOURCES}/fftwpp/convolution.cc"
-            "${FFTWPP_SOURCES}/fftwpp/fftw++.cc")
-target_include_directories(fftwpp PUBLIC "${FFTWPP_SOURCES}")
+add_subdirectory("${PROJECT_SOURCE_DIR}/assets")
+#add_subdirectory("${PROJECT_SOURCE_DIR}/proto")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libs")
 
 # our source
 set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
@@ -44,5 +41,6 @@ set(Audio_SRCS "${PROJECT_SOURCE_DIR}/core/main.cpp"
 
 add_executable(Audio "${Audio_SRCS}")
 target_include_directories(Audio PUBLIC "${PROJECT_SOURCE_DIR}/core" "${PROJECT_SOURCE_DIR}/audio" "${PROJECT_SOURCE_DIR}/scenes")
-target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 libsoundio::libsoundio meta concepts range-v3 spdlog::spdlog fmt::fmt fmt::fmt-header-only OgreMain OgreBites ${OGRE_RenderSystem_GL3Plus_LIBRARIES})
+target_compile_definitions(Audio PUBLIC SPDLOG_FMT_EXTERNAL)
+target_link_libraries(Audio ${CMAKE_THREAD_LIBS_INIT} ${CMAKE_DL_LIBS} fftwpp fftw3 meta concepts range-v3 fmt::fmt fmt::fmt-header-only OgreMain OgreBites ${OGRE_RenderSystem_GL3Plus_LIBRARIES} gRPC::grpc gRPC::grpc++ cpptoml)
 target_compile_options(Audio PRIVATE -Wall -Wextra)
