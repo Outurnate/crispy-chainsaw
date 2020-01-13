@@ -9,7 +9,6 @@
 #include <OgreCamera.h>
 #include <OgreViewport.h>
 #include <OgreSceneNode.h>
-#include <OgreGL3PlusPlugin.h>
 #include <OgreShaderGenerator.h>
 #include <Bites/OgreWindowEventUtilities.h>
 
@@ -59,8 +58,9 @@ void Application::run()
 
   root.addFrameListener(this);
 
-  Ogre::GL3PlusPlugin gl3plus;
-  root.installPlugin(&gl3plus);
+//  Ogre::GL3PlusPlugin gl3plus;
+//  root.installPlugin(&gl3plus);
+  root.loadPlugin("RenderSystem_GL3Plus");
   root.setRenderSystem(root.getRenderSystemByName("OpenGL 3+ Rendering Subsystem"));
   root.initialise(false);
 
@@ -72,10 +72,10 @@ void Application::run()
 
   Ogre::TextureManager::getSingleton().setDefaultNumMipmaps(5);
   Ogre::ResourceGroupManager::getSingleton().addResourceLocation(".", "FileSystem");
-  //Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./assets/resources.zip", "Zip");
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib", "FileSystem");
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/GLSL", "FileSystem");
-  Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/HLSL_Cg", "FileSystem");
+  Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./assets/resources.zip", "Zip");
+  //Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib", "FileSystem");
+  //Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/GLSL", "FileSystem");
+  //Ogre::ResourceGroupManager::getSingleton().addResourceLocation("./RTShaderLib/HLSL_Cg", "FileSystem");
   Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
   {

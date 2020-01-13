@@ -1,7 +1,7 @@
 #ifndef SOUNDIO_HPP
 #define SOUNDIO_HPP
 
-#include <soundio.h>
+#include <soundio/soundio.h>
 #include <string>
 #include <chrono>
 #include <functional>
