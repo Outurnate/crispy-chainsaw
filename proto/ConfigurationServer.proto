@@ -5,10 +5,11 @@ package cfs;
 service ConfigurationServer
 {
   rpc ListSettings(Empty) returns (stream SettingDescription) {}
-//  rpc GetDetails(SettingDescription) returns (SettingDetails) {}
-//  rpc ValidateValue(SettingValue) returns (Result) {}
-//  rpc SetSetting(SettingValue) returns (Result) {}
-//  rpc ValidValues(SettingDescription) returns (stream SettingValue) {}
+  rpc GetDetails(SettingDescription) returns (SettingDetails) {}
+  rpc ValidateValue(SettingValue) returns (Result) {}
+  rpc SetSetting(SettingValue) returns (Result) {}
+  rpc GetSetting(SettingDescription) returns (SettingValue) {}
+  rpc ValidValues(SettingDescription) returns (stream SettingValue) {}
 }
 
 enum SettingType
@@ -21,7 +22,6 @@ enum SettingType
 
 message Empty
 {
-  string black = 1;
 }
 
 message SettingDescription
