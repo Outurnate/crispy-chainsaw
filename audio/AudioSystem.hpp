@@ -2,7 +2,7 @@
 #define AUDIOSYSTEM_HPP
 
 #include <array>
-#include <range/v3/span.hpp>
+#include <range/v3/view/span.hpp>
 #include <range/v3/view/slice.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 

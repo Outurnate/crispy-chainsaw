@@ -34,8 +34,10 @@ void AudioOutput::writeCallback(SoundIO::OutStream& stream, int minFrames, int m
     auto leftStreamFrame = stream.channel<float>(CHANNEL_LEFT);
     auto rightStreamFrame = stream.channel<float>(CHANNEL_RIGHT);
 
-    assert(providerFrame.left.size()  == leftStreamFrame.size());
-    assert(providerFrame.right.size() == rightStreamFrame.size());
+#ifdef DEBUG
+    assert(boost::numeric_cast<size_t>(providerFrame.left.size())  == boost::numeric_cast<size_t>(leftStreamFrame.size()));
+    assert(boost::numeric_cast<size_t>(providerFrame.right.size()) == boost::numeric_cast<size_t>(rightStreamFrame.size()));
+#endif
 
     ranges::v3::copy(providerFrame.left,  leftStreamFrame.begin());
     ranges::v3::copy(providerFrame.right, rightStreamFrame.begin());

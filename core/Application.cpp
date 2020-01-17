@@ -44,7 +44,7 @@ void Application::messageLogged(const Ogre::String& message, Ogre::LogMessageLev
 
 bool Application::frameStarted(const Ogre::FrameEvent& event)
 {
-  sceneManager.frame(42); // TODO THIS BAD
+  sceneManager.frame(event.timeSinceLastEvent);
   return true;
 }
 

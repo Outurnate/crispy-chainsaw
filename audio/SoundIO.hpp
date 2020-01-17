@@ -5,7 +5,7 @@
 #include <string>
 #include <chrono>
 #include <functional>
-#include <range/v3/span.hpp>
+#include <range/v3/view/span.hpp>
 #include <range/v3/view/stride.hpp>
 
 namespace SoundIO

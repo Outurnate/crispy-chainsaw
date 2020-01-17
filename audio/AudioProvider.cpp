@@ -56,7 +56,7 @@ void AudioProvider::readCallback(SoundIO::InStream& stream, int minFrames, int m
     // fill tempSamples
     if (!success)
     {
-      for (unsigned i = 0; i < framesRead; ++i)
+      for (int i = 0; i < framesRead; ++i)
       {
         tempSamples[i].left  = 0;
         tempSamples[i].right = 0;
@@ -67,7 +67,7 @@ void AudioProvider::readCallback(SoundIO::InStream& stream, int minFrames, int m
     {
       auto left  = stream.channel<float>(CHANNEL_LEFT);
       auto right = stream.channel<float>(CHANNEL_RIGHT);
-      for (unsigned i = 0; i < framesRead; ++i)
+      for (int i = 0; i < framesRead; ++i)
       {
         tempSamples[i].left  = left[i];
         tempSamples[i].right = right[i];

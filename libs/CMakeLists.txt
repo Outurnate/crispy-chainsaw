@@ -9,8 +9,9 @@ externalproject_add(fftwpp_sources
 )
 
 add_library(fftwpp_static STATIC ${CMAKE_CURRENT_SOURCE_DIR}/fftwpp.cpp)
-target_include_directories(fftwpp_static PUBLIC "${CMAKE_CURRENT_BINARY_DIR}/fftwpp_sources-prefix/src/fftwpp_sources")
+target_include_directories(fftwpp_static PRIVATE SYSTEM "${CMAKE_CURRENT_BINARY_DIR}/fftwpp_sources-prefix/src/fftwpp_sources")
 add_dependencies(fftwpp_static fftwpp_sources)
+set(FFTWPP_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/fftwpp_sources-prefix/src/fftwpp_sources" PARENT_SCOPE) 
 
 externalproject_add(cpptoml_sources
   URL https://github.com/skystrife/cpptoml/archive/v0.1.1.zip
