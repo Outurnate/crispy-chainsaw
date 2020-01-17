@@ -2,6 +2,7 @@
 #define CONFIGURATIONMANAGER_HPP
 
 #include <cpptoml.h>
+#include <vector>
 #include <variant>
 #include <map>
 #include <thread>
@@ -10,7 +11,7 @@
 #include <optional>
 #include <ConfigurationServer.grpc.pb.h>
 
-class ConfigurationManager final : public cfs::ConfigurationServer::Service
+class ConfigurationManager final : private cfs::ConfigurationServer::Service
 {
 public:
   typedef std::variant<double, std::string, bool, int> OptionValue;
@@ -21,24 +22,44 @@ public:
     typedef std::function<void(const OptionValue&)> UpdateCallback;
 
     std::string name;
+    std::string description;
     OptionValue defaultValue;
     OptionValue value;
+    bool runtimeMutable;
     std::optional<OptionValue> min;
     std::optional<OptionValue> max;
+    std::optional<bool> stringMustBeFromList;
+    std::optional<std::vector<std::string> > stringValues;
     std::optional<ValidationCallback> validationCallback;
     std::optional<UpdateCallback> updateCallback;
 
-    Option(std::string name, OptionValue defaultValue, std::optional<UpdateCallback> updateCallback = std::nullopt, std::optional<OptionValue> min = std::nullopt, std::optional<OptionValue> max = std::nullopt, std::optional<ValidationCallback> validationCallback = std::nullopt)
+    Option(
+        std::string name,
+        std::string description,
+        OptionValue defaultValue,
+        bool runtimeMutable = true,
+        std::optional<UpdateCallback> updateCallback = std::nullopt,
+        std::optional<OptionValue> min = std::nullopt,
+        std::optional<OptionValue> max = std::nullopt,
+        std::optional<bool> stringMustBeFromList = std::nullopt,
+        std::optional<std::vector<std::string> > stringValues = std::nullopt,
+        std::optional<ValidationCallback> validationCallback = std::nullopt)
       : name(name),
+        description(description),
         defaultValue(defaultValue),
         value(defaultValue),
-        updateCallback(updateCallback),
+        runtimeMutable(runtimeMutable),
         min(min),
         max(max),
-        validationCallback(validationCallback) {}
+        stringMustBeFromList(stringMustBeFromList),
+        stringValues(stringValues),
+        validationCallback(validationCallback),
+        updateCallback(updateCallback) {}
 
     bool validateNewValue(const OptionValue& value) const;
     void notifyUpdated();
+    std::string toString() const;
+    bool fromString(const std::string& str);
   };
 
   struct OptionSet
@@ -71,14 +92,12 @@ public:
     if (flush)
       this->flush();
   }
-
-  grpc::Status ListSettings(grpc::ServerContext* context, const cfs::Empty* request, grpc::ServerWriter<cfs::SettingDescription>* writer) override;
-  grpc::Status GetDetails(grpc::ServerContext* context, const cfs::SettingDescription* request, cfs::SettingDetails* response) override;
-  grpc::Status ValidateValue(grpc::ServerContext* context, const cfs::SettingValue* request, cfs::Result* response) override;
-  grpc::Status SetSetting(grpc::ServerContext* context, const cfs::SettingValue* request, cfs::Result* response) override;
-  grpc::Status GetSetting(grpc::ServerContext* context, const cfs::SettingDescription* request, cfs::SettingValue* response) override;
-  grpc::Status ValidValues(grpc::ServerContext* context, const cfs::SettingDescription* request, grpc::ServerWriter<cfs::SettingValue>* writer) override;
 private:
+  grpc::Status GetKeys(grpc::ServerContext* context, const cfs::Empty* request, grpc::ServerWriter<cfs::Key>* writer) override;
+  grpc::Status GetValue(grpc::ServerContext* context, const cfs::Key* request, cfs::Value* response) override;
+  grpc::Status GetDisplayHint(grpc::ServerContext* context, const cfs::Key* request, cfs::ValueDisplayHint* response) override;
+  grpc::Status SetValue(grpc::ServerContext* context, const cfs::Pair* request, cfs::Result* response) override;
+
   OptionSet current;
   std::shared_ptr<cpptoml::table> configFile;
   bool dirty;

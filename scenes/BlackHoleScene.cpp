@@ -14,7 +14,7 @@ BlackHoleScene::BlackHoleScene(const std::string& displayName, const std::string
     baseRadius(0.15f),
     circleWidth(0.01f)
 {
-  optionSet.registerOption(ConfigurationManager::Option(std::string("asdf"), 0.5));
+  optionSet.registerOption(ConfigurationManager::Option(std::string("asdf"), std::string("asdf"), 0.5));
 }
 
 Ogre::Camera& BlackHoleScene::getCamera()

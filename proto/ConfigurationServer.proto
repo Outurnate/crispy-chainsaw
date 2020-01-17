@@ -4,49 +4,77 @@ package cfs;
 
 service ConfigurationServer
 {
-  rpc ListSettings(Empty) returns (stream SettingDescription) {}
-  rpc GetDetails(SettingDescription) returns (SettingDetails) {}
-  rpc ValidateValue(SettingValue) returns (Result) {}
-  rpc SetSetting(SettingValue) returns (Result) {}
-  rpc GetSetting(SettingDescription) returns (SettingValue) {}
-  rpc ValidValues(SettingDescription) returns (stream SettingValue) {}
+  rpc GetKeys(Empty) returns (stream Key) {}
+  rpc GetValue(Key) returns (Value) {}
+  rpc GetDisplayHint(Key) returns (ValueDisplayHint) {}
+  rpc SetValue(Pair) returns (Result) {}
 }
 
-enum SettingType
+message Key
 {
-  INTEGER = 0;
-  REAL = 1;
-  BOOL = 2;
-  STRING = 3;
+  string name = 1;
+}
+
+message Value
+{
+  StatusCode status = 1;
+  string value = 2;
+}
+
+message Pair
+{
+  string name = 1;
+  string value = 2;
+}
+
+message IntValueDisplayHint
+{
+  int32 min = 1;
+  int32 max = 2;
+}
+
+message RealValueDisplayHint
+{
+  double min = 1;
+  double max = 2;
+}
+
+message BoolValueDisplayHint
+{
+}
+
+message StringValueDisplayHint
+{
+  repeated string values = 1;
+  bool mustBeOneOf = 2;
+}
+
+message ValueDisplayHint
+{
+  StatusCode status = 1;
+  bool runtimeMutable = 2;
+  string description = 3;
+  oneof hint
+  {
+    IntValueDisplayHint intDisplayHint = 4;
+    RealValueDisplayHint realDisplayHint = 5;
+    BoolValueDisplayHint boolDisplayHint = 6;
+    StringValueDisplayHint stringDisplayHint = 7;
+  }
 }
 
 message Empty
 {
 }
 
-message SettingDescription
+enum StatusCode
 {
-  string name = 1;
-}
-
-message SettingDetails
-{
-  SettingType type = 1;
-}
-
-message SettingValue
-{
-  string name = 1;
-  oneof value
-  {
-    int32 intValue = 2;
-    double realValue = 3;
-    bool boolValue = 4;
-    string stringValue = 5;
-  }
+  SUCCESS = 0;
+  KEYNOTFOUND = 1;
+  VALUEINVALID = 2;
 }
 
 message Result
 {
-  bool success = 1;
+  StatusCode status = 1;
 }

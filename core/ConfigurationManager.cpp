@@ -1,8 +1,8 @@
 #include "ConfigurationManager.hpp"
 
 #include <grpcpp/grpcpp.h>
-#include <fstream>
 #include <type_traits>
+#include <boost/lexical_cast.hpp>
 
 template<class T> struct always_false : std::false_type {};
 
@@ -37,7 +37,12 @@ bool ConfigurationManager::Option::validateNewValue(const ConfigurationManager::
         return true;
     }
     else if constexpr (std::is_same_v<T, std::string>)
-      return true;
+    {
+      if (stringMustBeFromList && stringMustBeFromList.value() && stringValues)
+        return std::find(stringValues->begin(), stringValues->end(), arg) != stringValues->end();
+      else
+        return true;
+    }
     else if constexpr (std::is_same_v<T, bool>)
       return true;
     else
@@ -49,6 +54,40 @@ bool ConfigurationManager::Option::validateNewValue(const ConfigurationManager::
 
 void ConfigurationManager::Option::notifyUpdated()
 {
+  if (updateCallback)
+    updateCallback.value()(value);
+}
+
+std::string ConfigurationManager::Option::toString() const
+{
+  return std::visit([](auto&& arg)
+  {
+    return boost::lexical_cast<std::string>(std::decay_t<decltype(arg)>(arg));
+  }, defaultValue);
+}
+
+bool ConfigurationManager::Option::fromString(const std::string& str)
+{
+  try
+  {
+    OptionValue newValue = std::visit([&str](auto&& arg)
+    {
+      return OptionValue(boost::lexical_cast<std::decay_t<decltype(arg)>>(str));
+    }, defaultValue);
+
+    if (validateNewValue(newValue))
+    {
+      value = newValue;
+      notifyUpdated();
+      return true;
+    }
+    else
+      return false;
+  }
+  catch (boost::bad_lexical_cast const&)
+  {
+    return false;
+  }
 }
 
 void ConfigurationManager::OptionSet::registerOption(ConfigurationManager::Option option)
@@ -109,154 +148,110 @@ void ConfigurationManager::flush()
   dirty = false;
 }
 
-cfs::SettingType getType(const ConfigurationManager::OptionValue& option)
-{
-  return std::visit([](auto&& arg)
-  {
-    using T = std::decay_t<decltype(arg)>;
-    if constexpr (std::is_same_v<T, int>)
-      return cfs::SettingType::INTEGER;
-    else if constexpr (std::is_same_v<T, double>)
-      return cfs::SettingType::REAL;
-    else if constexpr (std::is_same_v<T, std::string>)
-      return cfs::SettingType::STRING;
-    else if constexpr (std::is_same_v<T, bool>)
-      return cfs::SettingType::BOOL;
-    else
-      static_assert(always_false<T>::value, "non-exhaustive visitor!");
-  }, option);
-}
-
-std::optional<bool> validateValue(const ConfigurationManager::Option& option, const cfs::SettingValue& newValue)
-{
-  if (newValue.value_case() == cfs::SettingValue::VALUE_NOT_SET)
-    return std::nullopt;
-
-  switch(getType(option.value))
-  {
-  case cfs::SettingType::BOOL:
-    if (newValue.value_case() != cfs::SettingValue::kBoolValue)
-      return std::nullopt;
-    else
-      return option.validateNewValue(newValue.boolvalue());
-    break;
-  case cfs::SettingType::INTEGER:
-    if (newValue.value_case() != cfs::SettingValue::kIntValue)
-      return std::nullopt;
-    else
-      return option.validateNewValue(newValue.intvalue());
-    break;
-  case cfs::SettingType::REAL:
-    if (newValue.value_case() != cfs::SettingValue::kRealValue)
-      return std::nullopt;
-    else
-      return option.validateNewValue(newValue.realvalue());
-    break;
-  case cfs::SettingType::STRING:
-    if (newValue.value_case() != cfs::SettingValue::kStringValue)
-      return std::nullopt;
-    else
-      return option.validateNewValue(newValue.stringvalue());
-    break;
-  }
-}
-
-grpc::Status ConfigurationManager::ListSettings(grpc::ServerContext* context, const cfs::Empty* request, grpc::ServerWriter<cfs::SettingDescription>* writer)
+grpc::Status ConfigurationManager::GetKeys(grpc::ServerContext* context, const cfs::Empty* request, grpc::ServerWriter<cfs::Key>* writer)
 {
   (void)context;
   (void)request;
 
   for (auto& option : current.options)
   {
-    cfs::SettingDescription description;
-    description.set_name(option.second.name);
-    writer->Write(description);
+    cfs::Key key;
+    key.set_name(option.second.name);
+    writer->Write(key);
   }
 
   return grpc::Status::OK;
 }
 
-grpc::Status ConfigurationManager::GetDetails(grpc::ServerContext* context, const cfs::SettingDescription* request, cfs::SettingDetails* response)
+grpc::Status ConfigurationManager::GetValue(grpc::ServerContext* context, const cfs::Key* request, cfs::Value* response)
 {
   (void)context;
 
   auto mapValue = current.options.find(request->name());
-  bool doesOptionExist = mapValue != current.options.end();
-
-  if (!doesOptionExist)
-    return grpc::Status::CANCELLED;
-
-  response->set_type(getType(mapValue->second.value));
-
-  return grpc::Status::OK;
-}
-
-grpc::Status ConfigurationManager::ValidateValue(grpc::ServerContext* context, const cfs::SettingValue* request, cfs::Result* response)
-{
-  (void)context;
-
-  auto mapValue = current.options.find(request->name());
-  bool doesOptionExist = mapValue != current.options.end();
-
-  if (!doesOptionExist)
-    return grpc::Status::CANCELLED;
-
-  std::optional<bool> success = validateValue(mapValue->second, *request);
-
-  if (!success)
-    return grpc::Status::CANCELLED;
+  if (mapValue == current.options.end())
+    response->set_status(cfs::KEYNOTFOUND);
   else
   {
-    response->set_success(success.value());
-    return grpc::Status::OK;
+    response->set_status(cfs::SUCCESS);
+    response->set_value(mapValue->second.toString());
   }
+
+  return grpc::Status::OK;
 }
 
-grpc::Status ConfigurationManager::SetSetting(grpc::ServerContext* context, const cfs::SettingValue* request, cfs::Result* response)
+grpc::Status ConfigurationManager::GetDisplayHint(grpc::ServerContext* context, const cfs::Key* request, cfs::ValueDisplayHint* response)
 {
   (void)context;
 
   auto mapValue = current.options.find(request->name());
-  bool doesOptionExist = mapValue != current.options.end();
-
-  if (!doesOptionExist)
-    return grpc::Status::CANCELLED;
-}
-
-grpc::Status ConfigurationManager::GetSetting(grpc::ServerContext* context, const cfs::SettingDescription* request, cfs::SettingValue* response)
-{
-  (void)context;
-
-  auto mapValue = current.options.find(request->name());
-  bool doesOptionExist = mapValue != current.options.end();
-
-  if (!doesOptionExist)
-    return grpc::Status::CANCELLED;
-
-  switch(getType(mapValue->second.value))
+  if (mapValue == current.options.end())
+    response->set_status(cfs::KEYNOTFOUND);
+  else
   {
-  case cfs::SettingType::BOOL:
-    response->set_boolvalue(std::get<bool>(mapValue->second.value));
-    return grpc::Status::OK;
+    Option& option = mapValue->second;
 
-  case cfs::SettingType::INTEGER:
-    response->set_intvalue(std::get<int>(mapValue->second.value));
-    return grpc::Status::OK;
+    response->set_status(cfs::SUCCESS);
+    response->set_runtimemutable(option.runtimeMutable);
+    response->set_description(option.description);
 
-  case cfs::SettingType::REAL:
-    response->set_realvalue(std::get<double>(mapValue->second.value));
-    return grpc::Status::OK;
-
-  case cfs::SettingType::STRING:
-    response->set_stringvalue(std::get<std::string>(mapValue->second.value));
-    return grpc::Status::OK;
-
-  default:
-    return grpc::Status::CANCELLED;
+    std::visit([&option, &response](auto&& arg)
+    {
+      using T = std::decay_t<decltype(arg)>;
+      if constexpr (std::is_same_v<T, int>)
+      {
+        cfs::IntValueDisplayHint* hint = new cfs::IntValueDisplayHint;
+        if (option.max)
+          hint->set_max(std::get<int>(option.max.value()));
+        if (option.min)
+          hint->set_min(std::get<int>(option.min.value()));
+        response->set_allocated_intdisplayhint(hint);
+      }
+      else if constexpr (std::is_same_v<T, double>)
+      {
+        cfs::RealValueDisplayHint* hint = new cfs::RealValueDisplayHint;
+        if (option.max)
+          hint->set_max(std::get<double>(option.max.value()));
+        if (option.min)
+          hint->set_min(std::get<double>(option.min.value()));
+        response->set_allocated_realdisplayhint(hint);
+      }
+      else if constexpr (std::is_same_v<T, std::string>)
+      {
+        cfs::StringValueDisplayHint* hint = new cfs::StringValueDisplayHint;
+        if (option.stringValues)
+          for (const std::string& val : option.stringValues.value())
+            hint->add_values(val);
+        if (option.stringMustBeFromList)
+          hint->set_mustbeoneof(option.stringMustBeFromList.value());
+        response->set_allocated_stringdisplayhint(hint);
+      }
+      else if constexpr (std::is_same_v<T, bool>)
+      {
+        cfs::BoolValueDisplayHint* hint = new cfs::BoolValueDisplayHint;
+        response->set_allocated_booldisplayhint(hint);
+      }
+      else
+        static_assert(always_false<T>::value, "non-exhaustive visitor!");
+    }, option.value);
   }
+
+  return grpc::Status::OK;
 }
 
-grpc::Status ConfigurationManager::ValidValues(grpc::ServerContext* context, const cfs::SettingDescription* request, grpc::ServerWriter<cfs::SettingValue>* writer)
+grpc::Status ConfigurationManager::SetValue(grpc::ServerContext* context, const cfs::Pair* request, cfs::Result* response)
 {
   (void)context;
+
+  auto mapValue = current.options.find(request->name());
+  if (mapValue == current.options.end())
+    response->set_status(cfs::KEYNOTFOUND);
+  else
+  {
+    if (mapValue->second.fromString(request->value()))
+      response->set_status(cfs::SUCCESS);
+    else
+      response->set_status(cfs::VALUEINVALID);
+  }
+
+  return grpc::Status::OK;
 }
