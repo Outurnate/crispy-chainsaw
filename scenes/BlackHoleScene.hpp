@@ -21,6 +21,7 @@ private:
   std::vector<float> audioData;
   float baseRadius;
   float circleWidth;
+  bool doRender;
 };
 
 #endif

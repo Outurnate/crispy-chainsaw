@@ -12,7 +12,8 @@ BlackHoleScene::BlackHoleScene(const std::string& displayName, const std::string
     points(2 * (spectrumSize(SpectrumRange::LowMidrange, SpectrumRange::UpperMidrange))),
     audioData(points, 0.0f),
     baseRadius(0.15f),
-    circleWidth(0.01f)
+    circleWidth(0.01f),
+    doRender(true)
 {
   optionSet.registerOption(ConfigurationManager::Option(std::string("asdf"), std::string("asdf"), 0.5));
 }
@@ -80,36 +81,43 @@ void BlackHoleScene::updateAudio(const FFTSpectrumData& audioFrame)
     audioData[i++] = x;
   for (float x : left)
     audioData[i++] = x;
+
+  doRender = true;
 }
 
 void BlackHoleScene::update(double delta)
 {
   (void)delta;
 
-  Ogre::ColourValue inner[] { Ogre::ColourValue(1.0, 1.0, 1.0, 1.0), Ogre::ColourValue(1.0, 0.5, 0.0, 1.0), Ogre::ColourValue(1.0, 0.0, 0.0, 1.0) };
-  Ogre::ColourValue outer[] { Ogre::ColourValue(1.0, 1.0, 1.0, 0.0), Ogre::ColourValue(1.0, 0.5, 0.0, 0.0), Ogre::ColourValue(1.0, 0.0, 0.0, 0.0) };
-  for (unsigned j = 0; j < blackHoleMeshes.size(); ++j)
+  if (doRender)
   {
-    blackHoleMeshes[j]->beginUpdate(0);
-    unsigned c = 0;
-    for (unsigned i = 0; i < points; ++i)
+    Ogre::ColourValue inner[] { Ogre::ColourValue(1.0, 1.0, 1.0, 1.0), Ogre::ColourValue(1.0, 0.5, 0.0, 1.0), Ogre::ColourValue(1.0, 0.0, 0.0, 1.0) };
+    Ogre::ColourValue outer[] { Ogre::ColourValue(1.0, 1.0, 1.0, 0.0), Ogre::ColourValue(1.0, 0.5, 0.0, 0.0), Ogre::ColourValue(1.0, 0.0, 0.0, 0.0) };
+    for (unsigned j = 0; j < blackHoleMeshes.size(); ++j)
     {
-      float currentVal = audioData[i] * float(j + 1);
-      float nextVal = audioData[(i + 1) % points] * float(j + 1);
-      float innerSize = baseRadius;
-      float outerSize = baseRadius + (circleWidth * (j + 1));
-      Ogre::Vector2 currentInner = polarToRect(innerSize,                       float(i)     / float(points) * (2 * M_PI));
-      Ogre::Vector2 currentOuter = polarToRect(outerSize + (currentVal / 4.0f), float(i)     / float(points) * (2 * M_PI));
-      Ogre::Vector2 nextInner    = polarToRect(innerSize,                       float(i + 1) / float(points) * (2 * M_PI));
-      Ogre::Vector2 nextOuter    = polarToRect(outerSize + (nextVal / 4.0f),    float(i + 1) / float(points) * (2 * M_PI));
-      blackHoleMeshes[j]->position(currentInner.x, currentInner.y, 0); blackHoleMeshes[j]->colour(inner[j]); // 0
-      blackHoleMeshes[j]->position(currentOuter.x, currentOuter.y, 0); blackHoleMeshes[j]->colour(outer[j]); // 1
-      blackHoleMeshes[j]->position(nextInner.x,    nextInner.y,    0); blackHoleMeshes[j]->colour(inner[j]); // 2
-      blackHoleMeshes[j]->position(nextOuter.x,    nextOuter.y,    0); blackHoleMeshes[j]->colour(outer[j]); // 3
-      blackHoleMeshes[j]->triangle(c + 0, c + 1, c + 2);
-      blackHoleMeshes[j]->triangle(c + 1, c + 3, c + 2);
-      c += 4;
+      blackHoleMeshes[j]->beginUpdate(0);
+      unsigned c = 0;
+      for (unsigned i = 0; i < points; ++i)
+      {
+        float currentVal = audioData[i] * float(j + 1);
+        float nextVal = audioData[(i + 1) % points] * float(j + 1);
+        float innerSize = baseRadius;
+        float outerSize = baseRadius + (circleWidth * (j + 1));
+        Ogre::Vector2 currentInner = polarToRect(innerSize,                       float(i)     / float(points) * (2 * M_PI));
+        Ogre::Vector2 currentOuter = polarToRect(outerSize + (currentVal / 4.0f), float(i)     / float(points) * (2 * M_PI));
+        Ogre::Vector2 nextInner    = polarToRect(innerSize,                       float(i + 1) / float(points) * (2 * M_PI));
+        Ogre::Vector2 nextOuter    = polarToRect(outerSize + (nextVal / 4.0f),    float(i + 1) / float(points) * (2 * M_PI));
+        blackHoleMeshes[j]->position(currentInner.x, currentInner.y, 0); blackHoleMeshes[j]->colour(inner[j]); // 0
+        blackHoleMeshes[j]->position(currentOuter.x, currentOuter.y, 0); blackHoleMeshes[j]->colour(outer[j]); // 1
+        blackHoleMeshes[j]->position(nextInner.x,    nextInner.y,    0); blackHoleMeshes[j]->colour(inner[j]); // 2
+        blackHoleMeshes[j]->position(nextOuter.x,    nextOuter.y,    0); blackHoleMeshes[j]->colour(outer[j]); // 3
+        blackHoleMeshes[j]->triangle(c + 0, c + 1, c + 2);
+        blackHoleMeshes[j]->triangle(c + 1, c + 3, c + 2);
+        c += 4;
+      }
+      blackHoleMeshes[j]->end();
     }
-    blackHoleMeshes[j]->end();
+
+    doRender = false;
   }
 }
