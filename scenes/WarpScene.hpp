@@ -1,32 +1,26 @@
 #ifndef WARPSCENE_HPP
 #define WARPSCENE_HPP
 
-#include "sceneManager.hpp"
+#include "SceneManager.hpp"
 
-class warpScene : public scene
+#include <vector>
+#include <OgreSceneNode.h>
+
+class WarpScene : public Scene
 {
 public:
-  warpScene();
+  WarpScene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet);
 
-  void update(double delta, float width, float height) override;
-  void updateAudio(const fftSpectrumData& audioFrame) override;
-  void onReset(uint32_t width, uint32_t height) override;
+  void update(double delta) override;
+  void updateAudio(const FFTSpectrumData& audioFrame) override;
+  void initialize() override;
+  Ogre::Camera& getCamera() override;
 private:
-  struct star
-  {
-    float radius = 0.0f;
-    float theta = 0.0f;
-    float length = 1.0f;
-    float speed = 0.1f;
+  Ogre::SceneNode* buildColumn(Ogre::SceneNode& parent, float x);
 
-    inline glm::vec2 cartesian() const { return polarToRect(radius, theta); }
-  };
-  void renderStar(const star& obj);
-  void renderStaticStar(const glm::vec2& coord);
-  static inline void resetStar(star& obj);
-
-  std::array<star, 50> stars;
-  std::array<glm::vec2, 500> staticStars;
+  Ogre::Camera* camera;
+  std::vector<Ogre::SceneNode*> left;
+  std::vector<Ogre::SceneNode*> right;
 };
 
 #endif

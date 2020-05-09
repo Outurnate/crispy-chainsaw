@@ -60,7 +60,8 @@ void Application::run()
 
 //  Ogre::GL3PlusPlugin gl3plus;
 //  root.installPlugin(&gl3plus);
-  root.loadPlugin("RenderSystem_GL3Plus");
+  root.loadPlugin("/usr/lib/OGRE/RenderSystem_GL3Plus.so.1.12.6");
+  root.loadPlugin("/usr/lib/OGRE/Plugin_ParticleFX.so.1.12.6");
   root.setRenderSystem(root.getRenderSystemByName("OpenGL 3+ Rendering Subsystem"));
   root.initialise(false);
 

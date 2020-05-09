@@ -1,67 +1,83 @@
-#include "warpScene.hpp"
+#include "WarpScene.hpp"
 
-#include "gfxUtils.hpp"
-#include "math.hpp"
-#include "globals.hpp"
+#include <OgreEntity.h>
 
-#include <functional>
-
-void warpScene::resetStar(star& obj)
-{
-  obj.theta = rng() * (M_PI * 2.0f);
-  obj.length = (rng() * 2.0f) + 0.5f;
-  obj.radius = 0.0f;
-  obj.speed = rng() + 1.0f;
-}
-
-#define fadeDistance 0.4f
-#define baseSize 0.1f
-#define bassAmplitude 2.0f
-#define fieldSize 3.0f
-
-warpScene::warpScene()
-  : scene()
-{
-  for (star& obj : stars)
-  {
-    resetStar(obj);
-    obj.radius = rng() * fieldSize;
-  }
-
-  for (glm::vec2& obj : staticStars)
-  {
-    obj.x = (rng() * fieldSize) - (fieldSize / 2);
-    obj.y = (rng() * fieldSize) - (fieldSize / 2);
-  }
-}
-
-void warpScene::renderStar(const star& obj)
+WarpScene::WarpScene(const std::string& displayName, const std::string& name, ConfigurationManager::OptionSet& optionSet)
+  : Scene(displayName, name, optionSet),
+    left(7, nullptr),
+    right(7, nullptr)
 {
 }
 
-void warpScene::renderStaticStar(const glm::vec2& coord)
+void WarpScene::update(double delta)
 {
 }
 
-void warpScene::update(double delta, float width, float height)
+void WarpScene::updateAudio(const FFTSpectrumData& audioFrame)
 {
-  for (glm::vec2& obj : staticStars)
-    renderStaticStar(obj);
+  left[0]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::SubBass,       SpectrumRange::SubBass,       Channel::Left));
+  left[1]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Bass,          SpectrumRange::Bass,          Channel::Left));
+  left[2]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::LowMidrange,   SpectrumRange::LowMidrange,   Channel::Left));
+  left[3]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Midrange,      SpectrumRange::Midrange,      Channel::Left));
+  left[4]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::UpperMidrange, SpectrumRange::UpperMidrange, Channel::Left));
+  left[5]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Presence,      SpectrumRange::Presence,      Channel::Left));
+  left[6]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Brilliance,    SpectrumRange::Brilliance,    Channel::Left));
 
-  for (star& obj : stars)
-  {
-    obj.radius += obj.speed * delta;
-    if (obj.radius > fieldSize)
-      resetStar(obj);
-    renderStar(obj);
-  }
+  right[0]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::SubBass,       SpectrumRange::SubBass,       Channel::Right));
+  right[1]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Bass,          SpectrumRange::Bass,          Channel::Right));
+  right[2]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::LowMidrange,   SpectrumRange::LowMidrange,   Channel::Right));
+  right[3]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Midrange,      SpectrumRange::Midrange,      Channel::Right));
+  right[4]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::UpperMidrange, SpectrumRange::UpperMidrange, Channel::Right));
+  right[5]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Presence,      SpectrumRange::Presence,      Channel::Right));
+  right[6]->setScale(.5, .5, 0.01f + 200 * spectrumAverage(audioFrame, SpectrumRange::Brilliance,    SpectrumRange::Brilliance,    Channel::Right));
 }
 
-void warpScene::updateAudio(const fftSpectrumData& audioFrame)
+Ogre::SceneNode* WarpScene::buildColumn(Ogre::SceneNode& parent, float x)
 {
-  (void)audioFrame;
+  Ogre::Entity& entity = *sceneManager->createEntity("Cylinder.mesh");
+  entity.setMaterialName("Solid/Red");
+
+  Ogre::SceneNode* node = parent.createChildSceneNode();
+  node->attachObject(&entity);
+  node->pitch(Ogre::Degree(-90));
+  node->scale(.5, .5, 0.01);
+  node->translate(x, 0, 0);
+
+  return node;
 }
 
-void warpScene::onReset(uint32_t width, uint32_t height)
+void WarpScene::initialize()
 {
+  sceneManager->setSkyBox(true, "skyboxes/space");
+  camera = sceneManager->createCamera("Camera");
+  camera->setNearClipDistance(1);
+
+  Ogre::SceneNode& cameraNode = *sceneManager->getRootSceneNode()->createChildSceneNode();
+  cameraNode.setPosition(0, 0, 90);
+  cameraNode.lookAt(Ogre::Vector3(0, 0, -300), Ogre::Node::TS_WORLD, Ogre::Vector3::NEGATIVE_UNIT_Z);
+  cameraNode.attachObject(camera);
+
+  Ogre::SceneNode& mainNode = *sceneManager->getRootSceneNode()->createChildSceneNode();
+  mainNode.pitch(Ogre::Degree(190));
+
+  int i = 1;
+  Ogre::SceneNode& leftNode = *mainNode.createChildSceneNode();
+  leftNode.yaw(Ogre::Degree(45));
+  for (auto& node : left)
+    node = buildColumn(leftNode, 1.25f * i++);
+
+  i = 1;
+  Ogre::SceneNode& rightNode = *mainNode.createChildSceneNode();
+  rightNode.yaw(Ogre::Degree(-45));
+  for (auto& node : right)
+    node = buildColumn(rightNode, -1.25f * i++);
+
+  sceneManager->setAmbientLight(Ogre::ColourValue(.5, .5, .5));
+  Ogre::Light& light = *sceneManager->createLight("MainLight");
+  light.setPosition(20, 80, 50);
+}
+
+Ogre::Camera& WarpScene::getCamera()
+{
+  return *camera;
 }

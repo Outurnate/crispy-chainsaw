@@ -29,7 +29,6 @@ AudioProviderFrame AudioProvider::provide(int frames)
     {
       sample.left = 0.0f;
       sample.right = 0.0f;
-      spdlog::warn("Provider underrun; emitting silence");
     }
     result.left.at(i)  = sample.left;
     result.right.at(i) = sample.right;

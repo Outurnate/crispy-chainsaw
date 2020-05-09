@@ -1,0 +1,31 @@
+particle_system SolarSpiral/Nova
+{
+  material        PointSprites/Nova
+  particle_width  1
+  particle_height 1
+  cull_each       false
+  quota           5000
+  billboard_type  point
+  point_rendering true
+
+  emitter Box
+  {
+    angle           180
+    emission_rate   5
+    time_to_live    10
+    direction       0 1 0
+    velocity        1.5
+    colour          0 1 0
+    width           0
+    height          0
+    depth           0
+  }
+
+  affector ColourFader
+  {
+    red   0
+    green 0
+    blue  0
+    alpha -1
+  }
+}

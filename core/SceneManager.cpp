@@ -6,6 +6,8 @@
 #include <OgreSGTechniqueResolverListener.h>
 
 #include "BlackHoleScene.hpp"
+#include "WarpScene.hpp"
+#include "SolarSpiralScene.hpp"
 
 using namespace std::placeholders;
 
@@ -28,7 +30,9 @@ SceneManager::SceneManager()
     frameAudioMutex(),
     engine(std::bind(&SceneManager::updateAudio, this, _1))
 {
-  registerScene<BlackHoleScene>("Black Hole", "blackhole");
+  //registerScene<BlackHoleScene>("Black Hole", "blackhole");
+  //registerScene<WarpScene>("Warp", "warp");
+  registerScene<SolarSpiralScene>("Solar Spiral", "solarspiral");
 }
 
 ConfigurationManager::OptionSet& SceneManager::getOptionSet()

@@ -114,7 +114,7 @@ void AudioEngine::analysis()
 
       ++samplesReadyForAnalysis;
     }
-    if (samplesReadyForAnalysis != 0)
+    if (samplesReadyForAnalysis == 1)
       analyzedFrameCallback(analysisEngine.analyze(analysisSamples, currentParams.alpha, currentParams.gamma, currentParams.scale, currentParams.exponent));
     if (samplesReadyForAnalysis > 1)
       spdlog::warn("{} samples read.  Analysis thread is running behind", samplesReadyForAnalysis);
